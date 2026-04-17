@@ -22,8 +22,8 @@ html{font-size:16px}
   --ease:cubic-bezier(.4,0,.2,1);
 }
 html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font-family:var(--sans)}
-#amb{position:fixed;inset:0;z-index:0;pointer-events:none}
-#app{position:relative;z-index:10;height:100dvh;max-width:440px;margin:0 auto;display:flex;flex-direction:column;overflow:hidden}
+#amb{position:fixed;inset:0;z-index:0;pointer-events:none;touch-action:none}
+#app{position:relative;z-index:10;height:100dvh;max-width:440px;margin:0 auto;display:flex;flex-direction:column;overflow:hidden;isolation:isolate}
 @media(min-width:440px){#app{border-left:1px solid var(--line);border-right:1px solid var(--line)}}
 #drag{width:36px;height:4px;background:var(--line);border-radius:2px;margin:10px auto 0;flex-shrink:0}
 
@@ -43,9 +43,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 
 /* PAGES */
 #pages{flex:1;position:relative;overflow:hidden}
-.page{position:absolute;inset:0;display:flex;flex-direction:column;padding:0 20px 20px;opacity:0;transform:translateY(10px);pointer-events:none;transition:opacity .28s var(--ease),transform .28s var(--ease);overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.page{position:absolute;inset:0;display:none;flex-direction:column;padding:0 20px 20px;opacity:0;transform:translateY(10px);transition:opacity .28s var(--ease),transform .28s var(--ease);overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .page::-webkit-scrollbar{display:none}
-.page.on{opacity:1;transform:none;pointer-events:all}
+.page.on{display:flex;opacity:1;transform:none;pointer-events:all}
 
 /* NOW PLAYING */
 #pgNow{gap:0}
@@ -78,8 +78,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 #wvCvs{width:100%;height:44px;display:block;cursor:pointer;border-radius:3px}
 
 #progSection{padding-top:10px;flex-shrink:0}
-#progRail{width:100%;height:3px;background:var(--raise);border-radius:2px;position:relative;cursor:pointer;touch-action:none;overflow:visible}
-#progRail::before{content:'';position:absolute;inset:-12px}
+#progRail{width:100%;height:3px;background:var(--raise);border-radius:2px;position:relative;cursor:pointer;touch-action:none;overflow:visible;padding:10px 0;margin:-10px 0;box-sizing:content-box}
 #progBar{height:100%;border-radius:2px;background:var(--ac);transition:width .08s linear;position:relative;max-width:100%}
 #progHead{position:absolute;right:-6px;top:-5px;width:13px;height:13px;border-radius:50%;background:var(--txt);box-shadow:0 0 0 3px var(--bg),0 0 0 4.5px var(--ac);opacity:0;transition:opacity .18s;pointer-events:none}
 #progRail:hover #progHead{opacity:1}
@@ -1072,7 +1071,7 @@ async function uploadAll(){
     }catch(e){item.status='error';toast(`Failed: ${item.name} — ${e.message}`);renderQueue();}
     done++;
   }
-  document.getElementById('opLabel').textContent=done===total?'All done!`:`Done (${done}/${total})`;
+  document.getElementById('opLabel').textContent=done===total?'All done!':`Done (${done}/${total})`;
   document.getElementById('opVal').textContent=`${done} / ${total}`;
   document.getElementById('opFill').style.width='100%';
   btn.disabled=false;
@@ -1085,7 +1084,8 @@ async function uploadAll(){
 function goTab(name,btn){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
-  document.getElementById('pg'+name).classList.add('on');
+  const target=document.getElementById('pg'+name);
+  target.classList.add('on');
   if(btn)btn.classList.add('on');
   document.getElementById('mini').classList.toggle('hidden',name==='Now'||ST.idx<0);
   if(name==='Lib')renderLib(document.getElementById('srchIn').value);
