@@ -898,8 +898,14 @@ function renderQueue(){
 function removeItem(id){uploadItems=uploadItems.filter(x=>x.id!==id);renderQueue();document.getElementById('upControls').style.display=uploadItems.length?'flex':'none';}
 function clearQueue(){uploadItems=uploadItems.filter(x=>x.status==='uploading');renderQueue();document.getElementById('upControls').style.display=uploadItems.length?'flex':'none';}
 
-/* fileToB64: uses FileReader.readAsDataURL which is async and non-blocking.
-   Much safer than btoa() on large files — no main thread freeze. */
+/* ── GITHUB UPLOAD ENGINE ──────────────────────────────────────
+   Uses the Git Data API (blob → tree → commit) instead of the
+   Contents API. The Contents API has a 25 MB limit and returns
+   HTTP 500 for anything bigger. The Git Data API handles files
+   up to GitHub's 100 MB hard limit cleanly.
+─────────────────────────────────────────────────────────────── */
+
+/* Read file as base64 using FileReader (async, non-blocking) */
 function fileToB64(file){
   return new Promise((resolve,reject)=>{
     const rd=new FileReader();
@@ -914,53 +920,81 @@ function fileToB64(file){
 
 async function uploadFileToGH(item){
   const MB100=100*1024*1024;
-  if(item.file.size>MB100) throw new Error('File too large (max 100 MB for GitHub)');
+  if(item.file.size>MB100) throw new Error('File too large — GitHub max is 100 MB');
 
-  item.status='uploading';item.progress=5;renderQueue();
+  item.status='uploading'; item.progress=5; renderQueue();
 
-  if(item.file.size>5*1024*1024){
-    item.progress=8;renderQueue();
-    toast('Reading '+fmtSize(item.file.size)+' file...');
-    /* yield to browser so UI can update before heavy read */
-    await new Promise(r=>setTimeout(r,50));
-  }
-
+  /* Step 0 — read file */
+  if(item.file.size>3*1024*1024){ toast('Reading '+fmtSize(item.file.size)+'...'); await new Promise(r=>setTimeout(r,30)); }
   let b64;
   try{ b64=await fileToB64(item.file); }
   catch(e){ throw new Error('Could not read file: '+e.message); }
+  item.progress=25; renderQueue();
 
-  item.progress=45;renderQueue();
-  if(item.file.size>5*1024*1024) toast('Uploading to GitHub...');
+  /* Step 1 — get current HEAD SHA of the branch */
+  const refUrl='https://api.github.com/repos/'+GH.repo+'/git/refs/heads/'+GH.branch;
+  const refRes=await ghFetch(refUrl);
+  if(!refRes.ok) throw new Error('Could not get branch ref — check repo and branch name');
+  const refData=await refRes.json();
+  const headSha=refData.object.sha;
+  item.progress=35; renderQueue();
 
-  const folder=item.type==='audio'?'audio':'covers';
-  const path=folder+'/'+item.name;
-  const apiUrl='https://api.github.com/repos/'+GH.repo+'/contents/'+path;
+  /* Step 2 — get the HEAD commit to find its tree SHA */
+  const commitRes=await ghFetch('https://api.github.com/repos/'+GH.repo+'/git/commits/'+headSha);
+  if(!commitRes.ok) throw new Error('Could not get HEAD commit');
+  const commitData=await commitRes.json();
+  const baseTreeSha=commitData.tree.sha;
+  item.progress=45; renderQueue();
 
-  let sha=null;
-  try{const chk=await ghFetch(apiUrl);if(chk.ok){const d=await chk.json();sha=d.sha;}}catch{}
-
-  item.progress=55;renderQueue();
-
-  const body={message:'Upload '+item.name,content:b64,branch:GH.branch};
-  if(sha)body.sha=sha;
-
-  const res=await ghFetch(apiUrl,{method:'PUT',body:JSON.stringify(body)});
-  if(!res.ok){
-    const err=await res.json().catch(()=>({}));
-    const msg=err.message||('HTTP '+res.status);
-    if(msg.includes('too large')||res.status===413) throw new Error('File too large for GitHub API (max 100 MB)');
-    if(res.status===401) throw new Error('Token invalid — re-enter it in the Upload tab');
-    if(res.status===403) throw new Error('No write access — make sure token has repo scope');
-    if(res.status===422) throw new Error('GitHub rejected — check repo name and branch');
-    throw new Error(msg);
+  /* Step 3 — create a blob with the file content */
+  if(item.file.size>5*1024*1024) toast('Uploading '+fmtSize(item.file.size)+' to GitHub...');
+  const blobRes=await ghFetch('https://api.github.com/repos/'+GH.repo+'/git/blobs',{
+    method:'POST',
+    body:JSON.stringify({content:b64, encoding:'base64'})
+  });
+  if(!blobRes.ok){
+    const e=await blobRes.json().catch(()=>({}));
+    if(blobRes.status===413||( e.message&&e.message.includes('too large'))) throw new Error('File too large for GitHub (max 100 MB)');
+    throw new Error('Blob creation failed: '+(e.message||blobRes.status));
   }
+  const blobData=await blobRes.json();
+  const blobSha=blobData.sha;
+  item.progress=70; renderQueue();
+
+  /* Step 4 — create a new tree with the blob at the right path */
+  const folder=item.type==='audio'?'audio':'covers';
+  const filePath=folder+'/'+item.name;
+  const treeRes=await ghFetch('https://api.github.com/repos/'+GH.repo+'/git/trees',{
+    method:'POST',
+    body:JSON.stringify({base_tree:baseTreeSha, tree:[{path:filePath, mode:'100644', type:'blob', sha:blobSha}]})
+  });
+  if(!treeRes.ok){const e=await treeRes.json().catch(()=>({}));throw new Error('Tree creation failed: '+(e.message||treeRes.status));}
+  const treeData=await treeRes.json();
+  item.progress=82; renderQueue();
+
+  /* Step 5 — create the commit */
+  const newCommitRes=await ghFetch('https://api.github.com/repos/'+GH.repo+'/git/commits',{
+    method:'POST',
+    body:JSON.stringify({message:'Upload '+item.name, tree:treeData.sha, parents:[headSha]})
+  });
+  if(!newCommitRes.ok){const e=await newCommitRes.json().catch(()=>({}));throw new Error('Commit failed: '+(e.message||newCommitRes.status));}
+  const newCommitData=await newCommitRes.json();
+  item.progress=92; renderQueue();
+
+  /* Step 6 — advance the branch ref to the new commit */
+  const updateRefRes=await ghFetch(refUrl,{
+    method:'PATCH',
+    body:JSON.stringify({sha:newCommitData.sha, force:false})
+  });
+  if(!updateRefRes.ok){const e=await updateRefRes.json().catch(()=>({}));throw new Error('Ref update failed: '+(e.message||updateRefRes.status));}
 
   item.progress=100;
-  item.url='https://raw.githubusercontent.com/'+GH.repo+'/'+GH.branch+'/'+path;
+  item.url='https://raw.githubusercontent.com/'+GH.repo+'/'+GH.branch+'/'+filePath;
   item.status='done';
   renderQueue();
   return item.url;
 }
+
 
 async function uploadAll(){
   if(!GH.ready()){toast('Connect GitHub first');return;}
