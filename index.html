@@ -898,24 +898,68 @@ function renderQueue(){
 function removeItem(id){uploadItems=uploadItems.filter(x=>x.id!==id);renderQueue();document.getElementById('upControls').style.display=uploadItems.length?'flex':'none';}
 function clearQueue(){uploadItems=uploadItems.filter(x=>x.status==='uploading');renderQueue();document.getElementById('upControls').style.display=uploadItems.length?'flex':'none';}
 
-async function fileToB64(file){const buf=await file.arrayBuffer();const b=new Uint8Array(buf);let s='',chunk=8192;for(let i=0;i<b.length;i+=chunk)s+=String.fromCharCode(...b.subarray(i,i+chunk));return btoa(s);}
+/* fileToB64: uses FileReader.readAsDataURL which is async and non-blocking.
+   Much safer than btoa() on large files — no main thread freeze. */
+function fileToB64(file){
+  return new Promise((resolve,reject)=>{
+    const rd=new FileReader();
+    rd.onload=e=>{
+      const dataUrl=e.target.result;
+      resolve(dataUrl.substring(dataUrl.indexOf(',')+1));
+    };
+    rd.onerror=()=>reject(new Error('Failed to read file'));
+    rd.readAsDataURL(file);
+  });
+}
 
 async function uploadFileToGH(item){
-  item.status='uploading';item.progress=15;renderQueue();
-  const b64=await fileToB64(item.file);
-  item.progress=50;renderQueue();
+  const MB100=100*1024*1024;
+  if(item.file.size>MB100) throw new Error('File too large (max 100 MB for GitHub)');
+
+  item.status='uploading';item.progress=5;renderQueue();
+
+  if(item.file.size>5*1024*1024){
+    item.progress=8;renderQueue();
+    toast('Reading '+fmtSize(item.file.size)+' file...');
+    /* yield to browser so UI can update before heavy read */
+    await new Promise(r=>setTimeout(r,50));
+  }
+
+  let b64;
+  try{ b64=await fileToB64(item.file); }
+  catch(e){ throw new Error('Could not read file: '+e.message); }
+
+  item.progress=45;renderQueue();
+  if(item.file.size>5*1024*1024) toast('Uploading to GitHub...');
+
   const folder=item.type==='audio'?'audio':'covers';
-  const path=`${folder}/${item.name}`;
-  const apiUrl=`https://api.github.com/repos/${GH.repo}/contents/${path}`;
+  const path=folder+'/'+item.name;
+  const apiUrl='https://api.github.com/repos/'+GH.repo+'/contents/'+path;
+
   let sha=null;
   try{const chk=await ghFetch(apiUrl);if(chk.ok){const d=await chk.json();sha=d.sha;}}catch{}
-  item.progress=70;renderQueue();
-  const body={message:`Upload ${item.name}`,content:b64,branch:GH.branch};
+
+  item.progress=55;renderQueue();
+
+  const body={message:'Upload '+item.name,content:b64,branch:GH.branch};
   if(sha)body.sha=sha;
+
   const res=await ghFetch(apiUrl,{method:'PUT',body:JSON.stringify(body)});
-  if(!res.ok){const err=await res.json().catch(()=>({}));throw new Error(err.message||`HTTP ${res.status}`);}
-  item.progress=100;item.url=`https://raw.githubusercontent.com/${GH.repo}/${GH.branch}/${path}`;item.status='done';
-  renderQueue();return item.url;
+  if(!res.ok){
+    const err=await res.json().catch(()=>({}));
+    const msg=err.message||('HTTP '+res.status);
+    if(msg.includes('too large')||res.status===413) throw new Error('File too large for GitHub API (max 100 MB)');
+    if(res.status===401) throw new Error('Token invalid — re-enter it in the Upload tab');
+    if(res.status===403) throw new Error('No write access — make sure token has repo scope');
+    if(res.status===422) throw new Error('GitHub rejected — check repo name and branch');
+    throw new Error(msg);
+  }
+
+  item.progress=100;
+  item.url='https://raw.githubusercontent.com/'+GH.repo+'/'+GH.branch+'/'+path;
+  item.status='done';
+  renderQueue();
+  return item.url;
 }
 
 async function uploadAll(){
