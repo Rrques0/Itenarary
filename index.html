@@ -468,6 +468,118 @@ input[type=range]:hover::-webkit-slider-thumb{transform:scale(1.3)}
 .bar:nth-child(3){animation-delay:.3s;height:12px}
 .bar:nth-child(1){height:10px}
 @keyframes barbeat{0%,100%{transform:scaleY(.4)}50%{transform:scaleY(1)}}
+
+/* ═══════════════════════════════════
+   CHARACTER STAGE
+═══════════════════════════════════ */
+#charStage{
+  flex-shrink:0;
+  height:110px;
+  position:relative;
+  overflow:hidden;
+  margin:0 0 4px;
+}
+/* Ground line */
+#charStage::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;
+  height:1px;background:rgba(255,255,255,.06);
+}
+/* Shadow under each character */
+.char-shadow{
+  position:absolute;bottom:2px;
+  width:40px;height:6px;border-radius:50%;
+  background:rgba(0,0,0,.35);
+  filter:blur(3px);
+  left:50%;transform:translateX(-50%);
+  transition:opacity .4s;
+}
+/* Character wrapper — positions the SVG */
+.char{
+  position:absolute;
+  bottom:8px;
+  left:50%;
+  transform:translateX(-50%);
+  display:none;
+  flex-direction:column;
+  align-items:center;
+}
+.char.active{display:flex}
+
+/* ── BREAKDANCE MOVES ── */
+/* Character SVGs share these animation classes */
+@keyframes bboy-spin{
+  0%{transform:translateX(-50%) rotate(0deg)}
+  100%{transform:translateX(-50%) rotate(360deg)}
+}
+@keyframes bboy-freeze{
+  0%,100%{transform:translateX(-50%) rotate(-20deg) scaleX(-1)}
+  50%{transform:translateX(-50%) rotate(20deg) scaleX(-1)}
+}
+@keyframes bboy-bounce{
+  0%,100%{transform:translateX(-50%) translateY(0) scaleX(1)}
+  25%{transform:translateX(-54%) translateY(-18px) scaleX(1)}
+  50%{transform:translateX(-46%) translateY(-8px) scaleX(-1)}
+  75%{transform:translateX(-50%) translateY(-22px) scaleX(1)}
+}
+@keyframes bboy-windmill{
+  0%{transform:translateX(-50%) rotate(0deg) scale(1)}
+  25%{transform:translateX(-50%) rotate(90deg) scale(.9)}
+  50%{transform:translateX(-50%) rotate(180deg) scale(1.1)}
+  75%{transform:translateX(-50%) rotate(270deg) scale(.9)}
+  100%{transform:translateX(-50%) rotate(360deg) scale(1)}
+}
+@keyframes bboy-toprock{
+  0%,100%{transform:translateX(-50%) translateY(0) rotate(0deg)}
+  20%{transform:translateX(-54%) translateY(-6px) rotate(-8deg)}
+  40%{transform:translateX(-46%) translateY(-10px) rotate(6deg)}
+  60%{transform:translateX(-52%) translateY(-4px) rotate(-4deg)}
+  80%{transform:translateX(-48%) translateY(-8px) rotate(5deg)}
+}
+@keyframes bboy-headspin{
+  0%{transform:translateX(-50%) rotate(0deg) translateY(0)}
+  50%{transform:translateX(-50%) rotate(180deg) translateY(-5px)}
+  100%{transform:translateX(-50%) rotate(360deg) translateY(0)}
+}
+@keyframes idle-bob{
+  0%,100%{transform:translateX(-50%) translateY(0)}
+  50%{transform:translateX(-50%) translateY(-4px)}
+}
+
+/* Move variations applied to .char when playing */
+.char.move-bounce{animation:bboy-bounce .7s ease-in-out infinite}
+.char.move-spin{animation:bboy-spin .6s linear infinite}
+.char.move-freeze{animation:bboy-freeze 1.2s ease-in-out infinite}
+.char.move-windmill{animation:bboy-windmill .8s linear infinite}
+.char.move-toprock{animation:bboy-toprock .9s ease-in-out infinite}
+.char.move-headspin{animation:bboy-headspin .5s linear infinite}
+.char.move-idle{animation:idle-bob 1.4s ease-in-out infinite}
+
+/* ── LIMB ANIMATIONS (internal to SVG) ── */
+@keyframes arm-wave{0%,100%{transform:rotate(-20deg)}50%{transform:rotate(20deg)}}
+@keyframes leg-kick{0%,100%{transform:rotate(10deg)}50%{transform:rotate(-30deg)}}
+@keyframes head-nod{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+@keyframes tail-wag{0%,100%{transform:rotate(-15deg)}50%{transform:rotate(15deg)}}
+@keyframes ear-bounce{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.15)}}
+@keyframes skirt-sway{0%,100%{transform:skewX(0deg)}50%{transform:skewX(8deg)}}
+
+.arm-l{transform-origin:top center;animation:arm-wave .6s ease-in-out infinite}
+.arm-r{transform-origin:top center;animation:arm-wave .6s ease-in-out infinite reverse}
+.leg-l{transform-origin:top center;animation:leg-kick .6s ease-in-out infinite}
+.leg-r{transform-origin:top center;animation:leg-kick .6s ease-in-out infinite reverse}
+.head{transform-origin:center bottom;animation:head-nod .6s ease-in-out infinite}
+.tail{transform-origin:top left;animation:tail-wag .8s ease-in-out infinite}
+.ear{transform-origin:bottom center;animation:ear-bounce .6s ease-in-out infinite}
+.skirt{transform-origin:top center;animation:skirt-sway .6s ease-in-out infinite}
+
+/* Companion dog */
+#dogChar{
+  position:absolute;bottom:8px;right:30%;
+  display:none;flex-direction:column;align-items:center;
+}
+#dogChar.active{display:flex;animation:idle-bob 1s ease-in-out infinite .2s}
+@keyframes dog-run{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px) scaleX(-1)}75%{transform:translateX(4px) scaleX(1)}}
+#dogChar.move-run{animation:dog-run .4s ease-in-out infinite}
+
 </style>
 </head>
 <body>
@@ -525,6 +637,308 @@ input[type=range]:hover::-webkit-slider-thumb{transform:scale(1.3)}
           <div id="tChips"></div>
         </div>
       </div>
+
+
+      <!-- CHARACTER STAGE -->
+      <div id="charStage">
+
+        <!-- JAKARA (fem Jak) — elf girl with pointy ears, orange-blonde hair, breakdancer -->
+        <div class="char move-idle" id="charJakara">
+          <svg width="64" height="90" viewBox="0 0 64 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Hair -->
+            <ellipse class="head" cx="32" cy="18" rx="12" ry="14" fill="#E8A020"/>
+            <path d="M20 14 Q16 8 18 4 Q24 2 28 8" fill="#E8A020"/>
+            <path d="M44 14 Q48 8 46 4 Q40 2 36 8" fill="#E8A020"/>
+            <!-- Pointy elf ears -->
+            <path d="M20 20 L15 16 L19 22" fill="#F4C06A" stroke="#C8842A" stroke-width=".5"/>
+            <path d="M44 20 L49 16 L45 22" fill="#F4C06A" stroke="#C8842A" stroke-width=".5"/>
+            <!-- Face -->
+            <ellipse class="head" cx="32" cy="22" rx="9" ry="10" fill="#F4C06A"/>
+            <circle cx="29" cy="21" r="1.5" fill="#2a3060"/>
+            <circle cx="35" cy="21" r="1.5" fill="#2a3060"/>
+            <path d="M29 26 Q32 28 35 26" stroke="#C8842A" stroke-width="1" fill="none" stroke-linecap="round"/>
+            <!-- Crop top -->
+            <rect x="24" y="32" width="16" height="10" rx="2" fill="#1a9060"/>
+            <!-- Arms -->
+            <g class="arm-l"><rect x="14" y="32" width="5" height="14" rx="2" fill="#F4C06A" transform="rotate(-10 14 32)"/></g>
+            <g class="arm-r"><rect x="45" y="32" width="5" height="14" rx="2" fill="#F4C06A" transform="rotate(10 50 32)"/></g>
+            <!-- Skirt -->
+            <g class="skirt"><path d="M22 42 Q24 58 32 58 Q40 58 42 42Z" fill="#2a60c0"/></g>
+            <!-- Legs -->
+            <g class="leg-l"><rect x="25" y="58" width="5" height="18" rx="2" fill="#F4C06A" transform="rotate(-5 25 58)"/></g>
+            <g class="leg-r"><rect x="34" y="58" width="5" height="18" rx="2" fill="#F4C06A" transform="rotate(5 39 58)"/></g>
+            <!-- Shoes -->
+            <ellipse cx="27" cy="76" rx="5" ry="3" fill="#1a3080"/>
+            <ellipse cx="37" cy="76" rx="5" ry="3" fill="#1a3080"/>
+          </svg>
+          <div class="char-shadow"></div>
+        </div>
+
+        <!-- DAXA (fem Daxter) — orange ottsel girl, ponytail, tiny companion -->
+        <div class="char move-idle" id="charDaxa" style="left:38%;bottom:8px;transform:translateX(-50%) scale(.7)">
+          <svg width="44" height="64" viewBox="0 0 44 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Ears/head -->
+            <g class="ear"><ellipse cx="14" cy="10" rx="5" ry="8" fill="#E06010"/><ellipse cx="14" cy="10" rx="3" ry="5" fill="#F4A060"/></g>
+            <g class="ear"><ellipse cx="30" cy="10" rx="5" ry="8" fill="#E06010"/><ellipse cx="30" cy="10" rx="3" ry="5" fill="#F4A060"/></g>
+            <ellipse cx="22" cy="18" rx="11" ry="12" fill="#E06010"/>
+            <!-- Ponytail -->
+            <path d="M10 14 Q4 18 6 26 Q10 22 14 20" fill="#E06010"/>
+            <!-- Face muzzle -->
+            <ellipse cx="22" cy="22" rx="7" ry="5" fill="#F4C090"/>
+            <circle cx="19" cy="19" r="1.5" fill="#1a1a3a"/>
+            <circle cx="25" cy="19" r="1.5" fill="#1a1a3a"/>
+            <ellipse cx="22" cy="23" rx="2" ry="1" fill="#C05030"/>
+            <!-- Top -->
+            <rect x="14" y="30" width="16" height="10" rx="2" fill="#c040c0"/>
+            <!-- Arms -->
+            <g class="arm-l"><rect x="7" y="30" width="4" height="10" rx="2" fill="#E06010" transform="rotate(-8 7 30)"/></g>
+            <g class="arm-r"><rect x="33" y="30" width="4" height="10" rx="2" fill="#E06010" transform="rotate(8 37 30)"/></g>
+            <!-- Tail -->
+            <g class="tail"><path d="M14 38 Q4 44 6 54 Q12 52 14 46 Q16 42 14 38Z" fill="#E06010" stroke="#c08040" stroke-width=".5"/></g>
+            <!-- Bottom -->
+            <rect x="16" y="40" width="12" height="12" rx="2" fill="#E06010"/>
+            <!-- Legs -->
+            <g class="leg-l"><rect x="16" y="52" width="5" height="10" rx="2" fill="#E06010" transform="rotate(-3 16 52)"/></g>
+            <g class="leg-r"><rect x="23" y="52" width="5" height="10" rx="2" fill="#E06010" transform="rotate(3 28 52)"/></g>
+          </svg>
+          <div class="char-shadow" style="width:24px"></div>
+        </div>
+
+        <!-- SPYRA (fem Spyro) — purple dragon girl, pink wings, golden horns -->
+        <div class="char move-idle" id="charSpyra">
+          <svg width="68" height="88" viewBox="0 0 68 88" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Wings -->
+            <path d="M10 30 Q-4 18 2 36 Q8 40 16 38" fill="#c060c0" opacity=".8"/>
+            <path d="M58 30 Q72 18 66 36 Q60 40 52 38" fill="#c060c0" opacity=".8"/>
+            <!-- Horns -->
+            <path d="M26 12 L22 2 L28 10" fill="#FFD700"/>
+            <path d="M42 12 L46 2 L40 10" fill="#FFD700"/>
+            <!-- Head -->
+            <g class="head">
+              <ellipse cx="34" cy="22" rx="14" ry="13" fill="#9040c0"/>
+              <!-- Snout -->
+              <ellipse cx="34" cy="28" rx="8" ry="5" fill="#c080e0"/>
+              <circle cx="30" cy="20" r="2" fill="#FFD700"/>
+              <circle cx="38" cy="20" r="2" fill="#FFD700"/>
+              <!-- Nostrils -->
+              <circle cx="32" cy="29" r="1" fill="#7030a0"/>
+              <circle cx="36" cy="29" r="1" fill="#7030a0"/>
+            </g>
+            <!-- Body -->
+            <ellipse cx="34" cy="52" rx="13" ry="16" fill="#9040c0"/>
+            <!-- Belly -->
+            <ellipse cx="34" cy="52" rx="8" ry="11" fill="#c080e0"/>
+            <!-- Arms -->
+            <g class="arm-l"><rect x="14" y="42" width="8" height="16" rx="4" fill="#9040c0" transform="rotate(-15 14 42)"/></g>
+            <g class="arm-r"><rect x="46" y="42" width="8" height="16" rx="4" fill="#9040c0" transform="rotate(15 54 42)"/></g>
+            <!-- Skirt -->
+            <g class="skirt"><path d="M22 64 Q24 76 34 76 Q44 76 46 64Z" fill="#7030a0"/></g>
+            <!-- Tail -->
+            <g class="tail"><path d="M44 62 Q58 70 56 80 Q50 76 46 70 Q44 66 44 62Z" fill="#9040c0"/><path d="M54 80 L60 78 L58 84Z" fill="#FFD700"/></g>
+            <!-- Legs -->
+            <g class="leg-l"><rect x="24" y="76" width="7" height="10" rx="3" fill="#9040c0" transform="rotate(-4 24 76)"/></g>
+            <g class="leg-r"><rect x="37" y="76" width="7" height="10" rx="3" fill="#9040c0" transform="rotate(4 44 76)"/></g>
+          </svg>
+          <div class="char-shadow"></div>
+        </div>
+
+        <!-- CRASHINA (fem Crash) — orange bandicoot girl, wild hair, denim shorts -->
+        <div class="char move-idle" id="charCrashina">
+          <svg width="60" height="88" viewBox="0 0 60 88" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Wild hair -->
+            <path d="M14 18 Q10 6 16 4 Q22 2 24 12" fill="#D86018"/>
+            <path d="M46 18 Q50 6 44 4 Q38 2 36 12" fill="#D86018"/>
+            <path d="M20 14 Q18 4 26 2 Q32 4 30 14" fill="#D86018"/>
+            <path d="M40 14 Q42 4 34 2 Q28 4 30 14" fill="#D86018"/>
+            <!-- Head -->
+            <g class="head"><ellipse cx="30" cy="22" rx="14" ry="14" fill="#D86018"/>
+            <!-- Big muzzle -->
+            <ellipse cx="30" cy="28" rx="10" ry="7" fill="#F4A868"/>
+            <circle cx="25" cy="20" r="2.5" fill="#111"/>
+            <circle cx="35" cy="20" r="2.5" fill="#111"/>
+            <path d="M26 28 Q30 32 34 28" stroke="#a04010" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+            <!-- Nose -->
+            <ellipse cx="30" cy="25" rx="3" ry="2" fill="#a04010"/>
+            </g>
+            <!-- Body / overalls -->
+            <rect x="18" y="36" width="24" height="20" rx="3" fill="#4080D0"/>
+            <!-- Straps -->
+            <rect x="22" y="32" width="4" height="8" rx="1" fill="#4080D0"/>
+            <rect x="34" y="32" width="4" height="8" rx="1" fill="#4080D0"/>
+            <!-- Arms -->
+            <g class="arm-l"><rect x="8" y="36" width="8" height="18" rx="4" fill="#D86018" transform="rotate(-12 8 36)"/></g>
+            <g class="arm-r"><rect x="44" y="36" width="8" height="18" rx="4" fill="#D86018" transform="rotate(12 52 36)"/></g>
+            <!-- Legs -->
+            <g class="leg-l"><rect x="19" y="56" width="8" height="18" rx="4" fill="#D86018" transform="rotate(-5 19 56)"/></g>
+            <g class="leg-r"><rect x="33" y="56" width="8" height="18" rx="4" fill="#D86018" transform="rotate(5 41 56)"/></g>
+            <!-- Shoes -->
+            <ellipse cx="23" cy="74" rx="7" ry="4" fill="#1a1a1a"/>
+            <ellipse cx="37" cy="74" rx="7" ry="4" fill="#1a1a1a"/>
+          </svg>
+          <div class="char-shadow"></div>
+        </div>
+
+        <!-- SONIA (fem Sonic) — blue hedgehog girl, long quills, red boots -->
+        <div class="char move-idle" id="charSonia">
+          <svg width="58" height="90" viewBox="0 0 58 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Long back quills -->
+            <path d="M10 20 L2 8 L16 18" fill="#2060D0"/>
+            <path d="M12 26 L0 20 L14 26" fill="#2060D0"/>
+            <path d="M48 20 L56 8 L42 18" fill="#2060D0"/>
+            <!-- Head -->
+            <g class="head">
+              <ellipse cx="29" cy="22" rx="15" ry="16" fill="#2060D0"/>
+              <!-- Peach face -->
+              <ellipse cx="29" cy="26" rx="9" ry="8" fill="#F4C090"/>
+              <!-- Eyes — large -->
+              <ellipse cx="25" cy="23" rx="4" ry="4.5" fill="#fff"/>
+              <ellipse cx="25" cy="23" rx="2.5" ry="3" fill="#2060D0"/>
+              <circle cx="24" cy="22" r="1" fill="#111"/>
+              <ellipse cx="33" cy="23" rx="4" ry="4.5" fill="#fff"/>
+              <ellipse cx="33" cy="23" rx="2.5" ry="3" fill="#2060D0"/>
+              <circle cx="32" cy="22" r="1" fill="#111"/>
+              <!-- Nose -->
+              <ellipse cx="29" cy="27" rx="2" ry="1.2" fill="#c05040"/>
+              <!-- Eyelashes -->
+              <path d="M21 20 L19 18M23 19 L22 17" stroke="#111" stroke-width=".8" stroke-linecap="round"/>
+              <path d="M37 20 L39 18M35 19 L36 17" stroke="#111" stroke-width=".8" stroke-linecap="round"/>
+            </g>
+            <!-- Crop jacket -->
+            <rect x="19" y="38" width="20" height="12" rx="3" fill="#2060D0"/>
+            <rect x="25" y="38" width="8" height="12" rx="1" fill="#F4C090"/>
+            <!-- Arms -->
+            <g class="arm-l"><rect x="9" y="38" width="8" height="16" rx="4" fill="#2060D0" transform="rotate(-10 9 38)"/><ellipse cx="13" cy="54" rx="4" ry="4" fill="#fff"/></g>
+            <g class="arm-r"><rect x="41" y="38" width="8" height="16" rx="4" fill="#2060D0" transform="rotate(10 49 38)"/><ellipse cx="45" cy="54" rx="4" ry="4" fill="#fff"/></g>
+            <!-- Skirt / shorts -->
+            <g class="skirt"><path d="M18 50 Q20 62 29 62 Q38 62 40 50Z" fill="#E04040"/></g>
+            <!-- Legs -->
+            <g class="leg-l"><rect x="21" y="62" width="6" height="16" rx="3" fill="#F4C090" transform="rotate(-4 21 62)"/></g>
+            <g class="leg-r"><rect x="31" y="62" width="6" height="16" rx="3" fill="#F4C090" transform="rotate(4 37 62)"/></g>
+            <!-- Red boots -->
+            <ellipse cx="24" cy="79" rx="6" ry="4" fill="#E04040"/>
+            <ellipse cx="34" cy="79" rx="6" ry="4" fill="#E04040"/>
+            <rect x="18" y="75" width="12" height="5" rx="2" fill="#E04040"/>
+            <rect x="28" y="75" width="12" height="5" rx="2" fill="#E04040"/>
+          </svg>
+          <div class="char-shadow"></div>
+        </div>
+
+        <!-- MARIE (fem Mario) — red cap, dark braids, blue dungarees -->
+        <div class="char move-idle" id="charMarie">
+          <svg width="58" height="90" viewBox="0 0 58 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Cap -->
+            <ellipse cx="29" cy="14" rx="18" ry="8" fill="#E02020"/>
+            <rect x="11" y="14" width="36" height="5" rx="2" fill="#E02020"/>
+            <!-- M on cap -->
+            <path d="M22 12 L24 8 L27 12 L30 8 L33 12 L36 12 L36 16 L22 16Z" fill="#fff" opacity=".9"/>
+            <!-- Braids -->
+            <path d="M12 22 Q4 30 8 42 Q12 38 14 30 Q14 26 12 22" fill="#4a2010"/>
+            <path d="M46 22 Q54 30 50 42 Q46 38 44 30 Q44 26 46 22" fill="#4a2010"/>
+            <!-- Head -->
+            <g class="head"><ellipse cx="29" cy="24" rx="14" ry="13" fill="#F4C090"/>
+            <circle cx="25" cy="22" r="2" fill="#2a1a0a"/>
+            <circle cx="33" cy="22" r="2" fill="#2a1a0a"/>
+            <ellipse cx="23" cy="26" rx="3" ry="2" fill="#F08090" opacity=".6"/>
+            <ellipse cx="35" cy="26" rx="3" ry="2" fill="#F08090" opacity=".6"/>
+            <path d="M26 27 Q29 30 32 27" stroke="#c06040" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+            <ellipse cx="29" cy="23" rx="2.5" ry="1.5" fill="#c05040"/>
+            </g>
+            <!-- Dungaree bib -->
+            <rect x="20" y="37" width="18" height="14" rx="3" fill="#4070D0"/>
+            <rect x="23" y="34" width="5" height="6" rx="1" fill="#4070D0"/>
+            <rect x="30" y="34" width="5" height="6" rx="1" fill="#4070D0"/>
+            <!-- Shirt sleeves -->
+            <rect x="9" y="37" width="9" height="14" rx="4" fill="#E02020" transform="rotate(-8 9 37)"/>
+            <rect x="40" y="37" width="9" height="14" rx="4" fill="#E02020" transform="rotate(8 49 37)"/>
+            <!-- Hands -->
+            <g class="arm-l"><ellipse cx="13" cy="52" rx="4" ry="4" fill="#F4C090"/></g>
+            <g class="arm-r"><ellipse cx="45" cy="52" rx="4" ry="4" fill="#F4C090"/></g>
+            <!-- Dungaree legs -->
+            <g class="leg-l"><rect x="19" y="51" width="9" height="22" rx="4" fill="#4070D0" transform="rotate(-4 19 51)"/></g>
+            <g class="leg-r"><rect x="30" y="51" width="9" height="22" rx="4" fill="#4070D0" transform="rotate(4 39 51)"/></g>
+            <!-- Brown boots -->
+            <ellipse cx="23" cy="74" rx="7" ry="4" fill="#5a2010"/>
+            <ellipse cx="35" cy="74" rx="7" ry="4" fill="#5a2010"/>
+          </svg>
+          <div class="char-shadow"></div>
+        </div>
+
+        <!-- TINETTE (fem Tintin) — copper bob, red-white polka dot top, Snowy is her dog -->
+        <div class="char move-idle" id="charTinette">
+          <svg width="54" height="90" viewBox="0 0 54 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Hair — copper bob -->
+            <ellipse cx="27" cy="16" rx="14" ry="12" fill="#D07030"/>
+            <rect x="13" y="16" width="28" height="8" rx="0" fill="#D07030"/>
+            <path d="M13 16 Q12 26 14 32" stroke="#D07030" stroke-width="4" fill="none" stroke-linecap="round"/>
+            <path d="M41 16 Q42 26 40 32" stroke="#D07030" stroke-width="4" fill="none" stroke-linecap="round"/>
+            <!-- Face -->
+            <g class="head"><ellipse cx="27" cy="24" rx="11" ry="12" fill="#F4D4A0"/>
+            <circle cx="23" cy="22" r="1.8" fill="#111"/>
+            <circle cx="31" cy="22" r="1.8" fill="#111"/>
+            <!-- Simple dot nose -->
+            <circle cx="27" cy="26" r="1.2" fill="#c07050"/>
+            <path d="M24 29 Q27 32 30 29" stroke="#c07050" stroke-width="1" fill="none" stroke-linecap="round"/>
+            <!-- Freckles -->
+            <circle cx="22" cy="27" r=".8" fill="#c09060" opacity=".6"/>
+            <circle cx="32" cy="27" r=".8" fill="#c09060" opacity=".6"/>
+            </g>
+            <!-- Polka dot top -->
+            <rect x="17" y="36" width="20" height="14" rx="3" fill="#E04040"/>
+            <circle cx="22" cy="40" r="1.5" fill="#fff"/>
+            <circle cx="28" cy="43" r="1.5" fill="#fff"/>
+            <circle cx="34" cy="40" r="1.5" fill="#fff"/>
+            <circle cx="22" cy="47" r="1.5" fill="#fff"/>
+            <circle cx="34" cy="47" r="1.5" fill="#fff"/>
+            <!-- Collar -->
+            <path d="M17 36 L27 42 L37 36" stroke="#fff" stroke-width="1.5" fill="none"/>
+            <!-- Arms -->
+            <g class="arm-l"><rect x="7" y="36" width="8" height="16" rx="4" fill="#F4D4A0" transform="rotate(-10 7 36)"/></g>
+            <g class="arm-r"><rect x="39" y="36" width="8" height="16" rx="4" fill="#F4D4A0" transform="rotate(10 47 36)"/></g>
+            <!-- Trousers — dark blue -->
+            <rect x="16" y="50" width="22" height="16" rx="3" fill="#1a2060"/>
+            <!-- Belt -->
+            <rect x="16" y="50" width="22" height="3" rx="1" fill="#8B4513"/>
+            <rect x="25" y="49" width="4" height="5" rx="1" fill="#DAA520"/>
+            <!-- Legs -->
+            <g class="leg-l"><rect x="17" y="66" width="8" height="16" rx="4" fill="#1a2060" transform="rotate(-3 17 66)"/></g>
+            <g class="leg-r"><rect x="29" y="66" width="8" height="16" rx="4" fill="#1a2060" transform="rotate(3 37 66)"/></g>
+            <!-- Shoes -->
+            <ellipse cx="21" cy="82" rx="6" ry="3.5" fill="#1a1a1a"/>
+            <ellipse cx="33" cy="82" rx="6" ry="3.5" fill="#1a1a1a"/>
+          </svg>
+          <div class="char-shadow"></div>
+        </div>
+
+        <!-- MILOU (Snowy — female white terrier with bow) -->
+        <div id="dogChar">
+          <svg width="36" height="44" viewBox="0 0 36 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Tail -->
+            <g class="tail"><path d="M30 20 Q38 14 36 8 Q32 10 30 16" fill="#f0f0f0" stroke="#ccc" stroke-width=".5"/></g>
+            <!-- Body -->
+            <ellipse cx="20" cy="28" rx="12" ry="9" fill="#f0f0f0" stroke="#ddd" stroke-width=".5"/>
+            <!-- Head -->
+            <g class="head"><ellipse cx="10" cy="20" rx="9" ry="9" fill="#f0f0f0" stroke="#ddd" stroke-width=".5"/>
+            <!-- Snout -->
+            <ellipse cx="5" cy="22" rx="4" ry="3" fill="#f8f8f8"/>
+            <circle cx="4" cy="21" r="1.2" fill="#111"/>
+            <!-- Bow on head -->
+            <path d="M12 13 Q14 10 16 13 Q14 14 12 13Z" fill="#FF69B4"/>
+            <path d="M16 13 Q18 10 20 13 Q18 14 16 13Z" fill="#FF69B4"/>
+            <circle cx="16" cy="13" r="1.5" fill="#FF1493"/>
+            <!-- Eye -->
+            <circle cx="8" cy="19" r="2" fill="#111"/>
+            <circle cx="8.6" cy="18.4" r=".6" fill="#fff"/>
+            </g>
+            <!-- Legs -->
+            <rect x="12" y="34" width="4" height="8" rx="2" fill="#f0f0f0"/>
+            <rect x="18" y="34" width="4" height="8" rx="2" fill="#f0f0f0"/>
+            <rect x="24" y="34" width="4" height="8" rx="2" fill="#f0f0f0"/>
+          </svg>
+          <div class="char-shadow" style="width:30px"></div>
+        </div>
+
+      </div>
+      <!-- /CHARACTER STAGE -->
 
       <!-- Waveform -->
       <div id="wvWrap" onclick="wvSeek(event)" style="flex-shrink:0;padding:16px 20px 8px;cursor:pointer">
@@ -1141,6 +1555,87 @@ window.addEventListener('load',()=>{
 
 loadLib();
 renderLib();
+
+/* ═══════════════════════════════════════════════════
+   CHARACTER CONTROLLER
+═══════════════════════════════════════════════════ */
+const CHARS = ['charJakara','charSpyra','charCrashina','charSonia','charMarie','charTinette'];
+const MOVES = ['move-bounce','move-spin','move-freeze','move-windmill','move-toprock','move-headspin'];
+// Daxa always shows with Jakara; Milou always shows with Tinette
+let activeCharIdx = 0;
+let charTimer = null;
+let moveTimer = null;
+
+function showChar(idx){
+  CHARS.forEach((id,i)=>{
+    const el=document.getElementById(id);
+    if(el){
+      el.classList.toggle('active',i===idx);
+      // Remove all move classes when hiding
+      if(i!==idx){MOVES.forEach(m=>el.classList.remove(m));el.classList.add('move-idle');}
+    }
+  });
+  // Daxa shown with Jakara
+  const daxa=document.getElementById('charDaxa');
+  if(daxa)daxa.classList.toggle('active',idx===0);
+  // Milou shown with Tinette
+  const dog=document.getElementById('dogChar');
+  if(dog)dog.classList.toggle('active',idx===5);
+  activeCharIdx=idx;
+}
+
+function applyMove(charEl, move){
+  MOVES.forEach(m=>charEl.classList.remove(m));
+  charEl.classList.remove('move-idle');
+  charEl.classList.add(move);
+}
+
+function startCharShow(){
+  if(charTimer)return; // already running
+  showChar(activeCharIdx);
+  // Cycle characters every 8 seconds
+  charTimer=setInterval(()=>{
+    const next=(activeCharIdx+1)%CHARS.length;
+    showChar(next);
+    cycleMoves();
+  },8000);
+  cycleMoves();
+}
+
+function stopCharShow(){
+  clearInterval(charTimer);clearInterval(moveTimer);
+  charTimer=null;moveTimer=null;
+  // Set all to idle
+  CHARS.forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){MOVES.forEach(m=>el.classList.remove(m));el.classList.add('move-idle');}
+  });
+}
+
+function cycleMoves(){
+  clearInterval(moveTimer);
+  const applyRandom=()=>{
+    const el=document.getElementById(CHARS[activeCharIdx]);
+    if(el&&ST.playing){
+      const move=MOVES[Math.floor(Math.random()*MOVES.length)];
+      applyMove(el,move);
+    }
+  };
+  applyRandom();
+  moveTimer=setInterval(applyRandom,2000);
+}
+
+// Hook into setPlaying
+const _origSetPlaying=setPlaying;
+function setPlaying(v){
+  _origSetPlaying(v);
+  if(v){startCharShow();}
+  else{stopCharShow();}
+}
+
+// Init — show first char idle
+showChar(0);
+
 </script>
 </body>
 </html>
