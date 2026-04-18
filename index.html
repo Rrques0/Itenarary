@@ -4,1165 +4,901 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>CHROMATIC</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Archivo:wght@100;200;300;400;900&family=Archivo+Narrow:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
 :root{
-  --c0:#000005;
-  --p:255,60,120;   /* primary — changes per track */
-  --s:80,200,255;   /* secondary */
-  --a:220,255,80;   /* accent */
-  --glass:rgba(255,255,255,.04);
-  --glass-border:rgba(255,255,255,.09);
-  --glass-hover:rgba(255,255,255,.09);
-  --display:'Bebas Neue',sans-serif;
-  --body:'Archivo',sans-serif;
-  --narrow:'Archivo Narrow',sans-serif;
-  --ease:cubic-bezier(.19,1,.22,1);
-  --ease-back:cubic-bezier(.34,1.56,.64,1);
+  --bg:#04040a;
+  --s1:#0a0a14;
+  --s2:#10101e;
+  --s3:#181828;
+  --line:rgba(255,255,255,.06);
+  --line2:rgba(255,255,255,.12);
+  --txt:#f0eeff;
+  --sub:rgba(240,238,255,.4);
+  --dim:rgba(240,238,255,.18);
+  --ac:#7c6fff;
+  --ac2:#ff6fb0;
+  --ac3:#6fffff;
+  --acg:rgba(124,111,255,.14);
+  --g:var(--sans);
+  --sans:'Space Grotesk',system-ui,sans-serif;
+  --mono:'Space Mono',monospace;
+  --ease:cubic-bezier(.16,1,.3,1);
+  --ease2:cubic-bezier(.34,1.56,.64,1);
 }
-html,body{width:100%;height:100%;overflow:hidden;background:var(--c0);font-family:var(--body)}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font-family:var(--sans)}
 
-/* ── CINEMATIC BG ── */
-#bg{
-  position:absolute;inset:0;z-index:0;pointer-events:none;
-  background:var(--c0);
-  transition:background 1.5s var(--ease);
+/* ── SHELL ── */
+#app{
+  position:relative;width:100%;height:100dvh;
+  max-width:420px;margin:0 auto;
+  display:flex;flex-direction:column;overflow:hidden;
+  background:var(--bg);
 }
-#bg-art{
-  position:absolute;inset:-20%;
+@media(min-width:420px){#app{box-shadow:0 0 0 1px var(--line)}}
+
+/* ── ANIMATED BACKGROUND ── */
+#bgLayer{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+#bgBlur{
+  position:absolute;inset:0;
   background-size:cover;background-position:center;
-  filter:blur(60px) saturate(1.8) brightness(.35);
-  transition:background-image 1.2s var(--ease),opacity .8s;
-  opacity:0;
+  filter:blur(80px) saturate(2) brightness(.18);
+  opacity:0;transition:opacity 1s var(--ease),background-image .8s;
 }
-#bg-art.loaded{opacity:1}
-#bg-vignette{
+#bgBlur.on{opacity:1}
+#bgGrad{
   position:absolute;inset:0;
   background:
-    radial-gradient(ellipse 100% 60% at 50% 100%,rgba(0,0,5,.95) 0%,transparent 70%),
-    radial-gradient(ellipse 100% 40% at 50% 0%,rgba(0,0,5,.7) 0%,transparent 60%),
-    radial-gradient(ellipse 40% 100% at 0% 50%,rgba(0,0,5,.5) 0%,transparent 50%),
-    radial-gradient(ellipse 40% 100% at 100% 50%,rgba(0,0,5,.5) 0%,transparent 50%);
+    radial-gradient(ellipse 120% 60% at 50% 100%,rgba(4,4,10,.98) 0%,transparent 65%),
+    radial-gradient(ellipse 80% 50% at 50% 0%,rgba(4,4,10,.9) 0%,transparent 60%);
 }
-/* Animated color orbs */
-#orb1,#orb2{position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none;animation:orbdrift 12s ease-in-out infinite}
-#orb1{width:60vw;height:60vw;top:-10%;left:-10%;background:rgba(var(--p),.25);animation-delay:0s}
-#orb2{width:50vw;height:50vw;bottom:-10%;right:-10%;background:rgba(var(--s),.2);animation-delay:-6s}
-@keyframes orbdrift{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(5%,8%) scale(1.05)}66%{transform:translate(-4%,-5%) scale(.95)}}
-
-/* ── GRAIN OVERLAY ── */
-#grain{
-  position:absolute;inset:0;z-index:1;pointer-events:none;
-  opacity:.04;
-  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-size:200px;
-  animation:grainshift 1s steps(2) infinite;
-}
-@keyframes grainshift{0%{transform:translate(0,0)}25%{transform:translate(-2%,-1%)}50%{transform:translate(1%,2%)}75%{transform:translate(-1%,1%)}100%{transform:translate(2%,-2%)}}
-
-/* ── APP ── */
-#app{
-  position:relative;z-index:10;
-  width:100%;height:100dvh;
-  max-width:430px;margin:0 auto;
-  display:flex;flex-direction:column;
-  overflow:hidden;
-}
-@media(min-width:430px){
-  #app{border-left:1px solid rgba(255,255,255,.04);border-right:1px solid rgba(255,255,255,.04)}
+#bgGrid{
+  position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(124,111,255,.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(124,111,255,.04) 1px, transparent 1px);
+  background-size:32px 32px;
+  mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 40%,transparent 100%);
 }
 
-/* ── HIDDEN FILE INPUTS ── */
-#fpAudio,#fpFolder{display:none}
+/* ── SCAN LINE ── */
+#scan{
+  position:absolute;inset:0;pointer-events:none;z-index:1;
+  background:repeating-linear-gradient(
+    0deg,
+    transparent,transparent 2px,
+    rgba(0,0,0,.03) 2px,rgba(0,0,0,.03) 4px
+  );
+}
 
-/* ── HEADER ── */
-#hdr{
-  flex-shrink:0;
-  padding:20px 20px 0;
-  display:flex;align-items:center;justify-content:space-between;
+/* ── CONTENT ── */
+#content{position:relative;z-index:10;flex:1;display:flex;flex-direction:column;overflow:hidden}
+
+/* ── TOP BAR ── */
+#topbar{
+  display:flex;align-items:center;padding:16px 18px 12px;gap:10px;flex-shrink:0;
+  border-bottom:1px solid var(--line);
 }
-.logo{
-  font-family:var(--display);font-size:11px;letter-spacing:6px;
-  color:rgba(255,255,255,.2);
+.app-name{
+  font-size:11px;font-weight:700;letter-spacing:5px;color:var(--dim);
+  text-transform:uppercase;
 }
-.hdr-btns{display:flex;gap:8px}
-.hdr-btn{
-  width:36px;height:36px;border-radius:50%;
-  border:1px solid var(--glass-border);background:var(--glass);
+.tb-spacer{flex:1}
+.ico-btn{
+  width:34px;height:34px;border-radius:8px;
+  border:1px solid var(--line);background:rgba(255,255,255,.03);
   display:flex;align-items:center;justify-content:center;
-  cursor:pointer;transition:all .2s var(--ease);color:rgba(255,255,255,.4);
-  -webkit-appearance:none;
+  cursor:pointer;color:var(--sub);transition:all .18s var(--ease);
+  -webkit-appearance:none;flex-shrink:0;
 }
-.hdr-btn:hover,.hdr-btn:active{background:var(--glass-hover);color:#fff;border-color:rgba(255,255,255,.2)}
-.hdr-btn.on{border-color:rgba(var(--a),.6);color:rgba(var(--a),1);background:rgba(var(--a),.08)}
-.hdr-btn svg{width:15px;height:15px;display:block}
+.ico-btn:hover,.ico-btn:active{border-color:var(--line2);color:var(--txt);background:rgba(255,255,255,.06)}
+.ico-btn.on{border-color:var(--ac);color:var(--ac);background:var(--acg)}
+.ico-btn svg{width:15px;height:15px;display:block}
+
+/* ── TABS ── */
+#tabs{
+  display:flex;flex-shrink:0;
+  border-bottom:1px solid var(--line);
+  background:rgba(4,4,10,.6);
+}
+.tab{
+  flex:1;padding:10px 8px;text-align:center;
+  font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;
+  color:var(--dim);cursor:pointer;border:none;background:none;
+  font-family:var(--sans);transition:all .2s var(--ease);
+  position:relative;-webkit-appearance:none;
+}
+.tab::after{
+  content:'';position:absolute;bottom:0;left:20%;right:20%;height:2px;
+  background:linear-gradient(90deg,var(--ac),var(--ac2));border-radius:1px;
+  opacity:0;transition:opacity .2s;
+}
+.tab.on{color:var(--txt)}
+.tab.on::after{opacity:1}
 
 /* ── PAGES ── */
-#pages{flex:1;position:relative;overflow:hidden}
+#pages{flex:1;overflow:hidden;display:flex;flex-direction:column}
 .page{display:none;flex-direction:column;width:100%;height:100%;overflow:hidden}
 .page.on{display:flex}
 
-/* ═══════════════════════════════════
-   NOW PLAYING — full bleed cinematic
-═══════════════════════════════════ */
-#pgNow{position:relative}
+/* ══════════════════════════════════════
+   NOW PLAYING
+══════════════════════════════════════ */
+#pgNow{overflow-y:auto;scrollbar-width:none;padding:0 18px 24px}
+#pgNow::-webkit-scrollbar{display:none}
 
-/* GIANT TRACK NUMBER — background texture */
-#trkNumBg{
-  position:absolute;top:-5%;right:-5%;
-  font-family:var(--display);font-size:52vw;line-height:1;
-  color:rgba(255,255,255,.02);letter-spacing:-10px;
-  pointer-events:none;z-index:0;
-  transition:opacity .6s;
-}
-
-/* CONTENT */
-#nowContent{
-  position:relative;z-index:1;
-  flex:1;display:flex;flex-direction:column;
-  padding:16px 20px 0;
-}
-
-/* ALBUM ART — small circle, top right */
-#artWrap{
-  position:absolute;top:0;right:0;
-  width:min(140px,35vw);height:min(140px,35vw);
-  border-radius:50%;overflow:hidden;
-  box-shadow:0 0 0 1px rgba(255,255,255,.08),0 20px 60px rgba(0,0,0,.5);
-  transition:transform .6s var(--ease);
-  cursor:pointer;
-}
-.playing #artWrap{animation:spinart 20s linear infinite}
-@keyframes spinart{to{transform:rotate(360deg)}}
-#artImg{width:100%;height:100%;object-fit:cover;display:block}
-#artCenter{
-  position:absolute;inset:35%;border-radius:50%;
-  background:rgba(0,0,5,.8);
-  box-shadow:inset 0 0 0 1px rgba(255,255,255,.06);
-}
-
-/* TRACK TITLE — huge, editorial, overlapping */
-#titleBlock{
-  margin-top:auto;
-  padding-bottom:4px;
-}
-#tArtist{
-  font-family:var(--narrow);font-size:10px;letter-spacing:4px;font-weight:400;
-  color:rgba(255,255,255,.35);text-transform:uppercase;margin-bottom:6px;
-}
-#tTitle{
-  font-family:var(--display);
-  font-size:clamp(48px,16vw,82px);
-  line-height:.9;letter-spacing:-1px;
-  color:#fff;
-  text-shadow:0 0 80px rgba(var(--p),.4);
-  transition:text-shadow .8s var(--ease);
-  /* overflow: allow it to breathe */
-  word-break:break-word;
-}
-#tAlbum{
-  font-family:var(--narrow);font-size:10px;letter-spacing:3px;
-  color:rgba(255,255,255,.2);margin-top:8px;font-weight:400;
-}
-.tchip{
-  display:inline-block;padding:3px 10px;border-radius:2px;
-  font-family:var(--narrow);font-size:9px;letter-spacing:2px;font-weight:700;
-  background:rgba(var(--a),.12);color:rgba(var(--a),1);
-  border:1px solid rgba(var(--a),.25);margin-right:5px;margin-top:6px;
-}
-
-/* ── WAVEFORM ── */
-#wvWrap{
-  flex-shrink:0;
-  padding:16px 0 8px;
-  cursor:pointer;
+/* ART */
+#artSection{padding-top:18px;flex-shrink:0;position:relative}
+#artFrame{
+  width:100%;aspect-ratio:1;border-radius:16px;overflow:hidden;
   position:relative;
+  box-shadow:0 32px 80px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.07);
+  transition:box-shadow .6s var(--ease);
 }
-#wvCvs{display:block;width:100%;height:52px}
+.playing #artFrame{
+  box-shadow:
+    0 32px 80px rgba(0,0,0,.7),
+    0 0 0 1px rgba(255,255,255,.1),
+    0 0 80px rgba(124,111,255,.25),
+    0 0 120px rgba(255,111,176,.1);
+}
+#artImg{width:100%;height:100%;object-fit:cover;display:block;transition:opacity .5s,transform .5s}
+#artImg.swap{opacity:0;transform:scale(.96)}
+#artSheen{position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.06) 0%,transparent 50%);pointer-events:none}
 
-/* ── PROGRESS ── */
-#progWrap{flex-shrink:0;padding:0 0 12px}
-#progRail{
-  width:100%;height:24px;
-  display:flex;align-items:center;
-  cursor:pointer;touch-action:none;
+/* CHARACTER STAGE — overlays bottom of art */
+#charStage{
+  position:absolute;bottom:0;left:0;right:0;height:100px;
+  pointer-events:none;overflow:hidden;
+  display:flex;align-items:flex-end;justify-content:center;
+  gap:8px;padding-bottom:4px;
+  background:linear-gradient(to top,rgba(4,4,10,.6) 0%,transparent 100%);
 }
-#progTrack{
-  width:100%;height:2px;
-  background:rgba(255,255,255,.08);
-  border-radius:1px;position:relative;
+.char-slot{
+  display:flex;flex-direction:column;align-items:center;
+  opacity:0;transform:translateY(20px);
+  transition:opacity .4s var(--ease),transform .4s var(--ease);
 }
-#progFill{
-  height:100%;border-radius:1px;
-  background:linear-gradient(90deg,rgba(var(--p),1),rgba(var(--a),1));
-  position:relative;transition:width .08s linear;max-width:100%;
+.char-slot.visible{opacity:1;transform:translateY(0)}
+
+/* Character SVG animations */
+@keyframes ch-bounce{0%,100%{transform:translateY(0) scaleX(1)}25%{transform:translateY(-22px) scaleX(.95)}50%{transform:translateY(-12px) scaleX(1.05)}75%{transform:translateY(-26px) scaleX(.98)}}
+@keyframes ch-spin{0%{transform:rotate(0deg) scale(1)}50%{transform:rotate(180deg) scale(1.1)}100%{transform:rotate(360deg) scale(1)}}
+@keyframes ch-freeze{0%,100%{transform:rotate(-18deg) translateX(-4px)}50%{transform:rotate(14deg) translateX(4px)}}
+@keyframes ch-wave{0%,100%{transform:translateY(0) rotate(0deg)}33%{transform:translateY(-14px) rotate(-6deg)}66%{transform:translateY(-8px) rotate(5deg)}}
+@keyframes ch-slide{0%,100%{transform:translateX(0) scaleX(1)}40%{transform:translateX(-12px) scaleX(-1)}70%{transform:translateX(8px) scaleX(1)}}
+@keyframes ch-idle{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+
+/* Arm animations */
+@keyframes arm-l{0%,100%{transform:rotate(-15deg)}50%{transform:rotate(40deg)}}
+@keyframes arm-r{0%,100%{transform:rotate(15deg)}50%{transform:rotate(-40deg)}}
+@keyframes leg-l{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(25deg)}}
+@keyframes leg-r{0%,100%{transform:rotate(8deg)}50%{transform:rotate(-25deg)}}
+@keyframes head-bob{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
+@keyframes tail-swing{0%,100%{transform:rotate(-20deg)}50%{transform:rotate(20deg)}}
+
+.a-arm-l{transform-origin:top center;animation:arm-l .5s ease-in-out infinite}
+.a-arm-r{transform-origin:top center;animation:arm-r .5s ease-in-out infinite}
+.a-leg-l{transform-origin:top center;animation:leg-l .5s ease-in-out infinite}
+.a-leg-r{transform-origin:top center;animation:leg-r .5s ease-in-out infinite}
+.a-head{transform-origin:bottom center;animation:head-bob .6s ease-in-out infinite}
+.a-tail{transform-origin:top left;animation:tail-swing .7s ease-in-out infinite}
+
+/* Move classes applied to .char-slot */
+.m-bounce{animation:ch-bounce .6s cubic-bezier(.36,.07,.19,.97) infinite}
+.m-spin{animation:ch-spin .7s linear infinite}
+.m-freeze{animation:ch-freeze 1s ease-in-out infinite}
+.m-wave{animation:ch-wave .8s ease-in-out infinite}
+.m-slide{animation:ch-slide .9s ease-in-out infinite}
+.m-idle{animation:ch-idle 1.2s ease-in-out infinite}
+
+/* TRACK INFO */
+#trackInfo{padding-top:18px;flex-shrink:0}
+.now-meta{font-size:10px;font-weight:600;letter-spacing:3px;color:var(--dim);margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.now-meta-dot{width:5px;height:5px;border-radius:50%;background:var(--ac);animation:pulse 2s ease-in-out infinite}
+.playing .now-meta-dot{background:var(--ac2)}
+@keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
+#tTitle{font-size:clamp(22px,6vw,30px);font-weight:700;letter-spacing:-.5px;line-height:1.1;color:var(--txt)}
+#tArtist{font-size:13px;color:var(--sub);margin-top:5px;font-weight:400}
+.t-chips{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.tchip{
+  padding:3px 10px;border-radius:4px;font-size:9px;font-weight:700;letter-spacing:1.5px;
+  border:1px solid rgba(124,111,255,.3);color:var(--ac);background:rgba(124,111,255,.08);
 }
-#progHead{
-  position:absolute;right:-5px;top:-4px;
-  width:10px;height:10px;border-radius:50%;
-  background:#fff;box-shadow:0 0 10px rgba(var(--p),1);
-  opacity:0;transition:opacity .18s;pointer-events:none;
-}
+
+/* WAVEFORM */
+#wvSection{padding-top:14px;flex-shrink:0;cursor:pointer}
+#wvCvs{display:block;width:100%;height:48px}
+
+/* PROGRESS */
+#progSection{padding-top:8px;flex-shrink:0}
+#progRail{width:100%;height:20px;display:flex;align-items:center;cursor:pointer;touch-action:none}
+#progTrack{width:100%;height:2px;background:rgba(255,255,255,.08);border-radius:1px;position:relative}
+#progFill{height:100%;border-radius:1px;background:linear-gradient(90deg,var(--ac),var(--ac2));max-width:100%;transition:width .08s linear}
+#progHead{position:absolute;right:-5px;top:-4px;width:10px;height:10px;border-radius:50%;background:var(--txt);box-shadow:0 0 10px var(--ac);opacity:0;transition:opacity .15s;pointer-events:none}
 #progRail:hover #progHead{opacity:1}
-.times{
-  display:flex;justify-content:space-between;
-  font-family:var(--narrow);font-size:10px;
-  color:rgba(255,255,255,.25);letter-spacing:1px;
-  margin-top:4px;
-}
+.prog-times{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:1px;margin-top:5px}
 
-/* ── CONTROLS ── */
-#ctrlRow{
-  flex-shrink:0;
-  display:flex;align-items:center;justify-content:space-between;
-  padding:0 0 16px;gap:8px;
-}
+/* CONTROLS */
+#ctrlSection{padding-top:16px;flex-shrink:0}
+#ctrlRow{display:flex;align-items:center;justify-content:space-between}
 .ctrl{
   background:none;border:none;cursor:pointer;
   display:flex;align-items:center;justify-content:center;
-  color:rgba(255,255,255,.35);transition:all .18s var(--ease);
-  -webkit-appearance:none;border-radius:50%;
-  width:44px;height:44px;
+  color:var(--sub);width:42px;height:42px;border-radius:10px;
+  transition:all .18s var(--ease);-webkit-appearance:none;
 }
-.ctrl:hover,.ctrl:active{color:#fff}
-.ctrl:active{transform:scale(.86)}
-.ctrl.on{color:rgba(var(--a),1)}
+.ctrl:hover,.ctrl:active{color:var(--txt);background:rgba(255,255,255,.05)}
+.ctrl:active{transform:scale(.88)}
+.ctrl.on{color:var(--ac)}
 .ctrl svg{display:block}
-
 #playBtn{
-  width:68px;height:68px;border-radius:50%;
-  border:none;cursor:pointer;
+  width:62px;height:62px;border-radius:50%;border:none;cursor:pointer;
+  background:linear-gradient(135deg,var(--ac),var(--ac2));
   display:flex;align-items:center;justify-content:center;
-  -webkit-appearance:none;
-  position:relative;
-  background:linear-gradient(135deg,rgba(var(--p),.9),rgba(var(--s),.7));
-  box-shadow:0 0 0 1px rgba(255,255,255,.1),0 8px 32px rgba(var(--p),.4),0 0 60px rgba(var(--p),.2);
-  transition:transform .15s var(--ease-back),box-shadow .3s;
-  color:#fff;
+  color:#fff;-webkit-appearance:none;
+  box-shadow:0 8px 30px rgba(124,111,255,.4),0 0 0 0 rgba(124,111,255,.2);
+  transition:transform .15s var(--ease2),box-shadow .3s;
 }
-#playBtn:active{transform:scale(.9)}
-#playBtn:hover{transform:scale(1.08);box-shadow:0 0 0 1px rgba(255,255,255,.15),0 12px 40px rgba(var(--p),.6),0 0 80px rgba(var(--p),.3)}
-.playing #playBtn{animation:playpulse 2s ease-in-out infinite}
-@keyframes playpulse{0%,100%{box-shadow:0 0 0 1px rgba(255,255,255,.1),0 8px 32px rgba(var(--p),.4),0 0 60px rgba(var(--p),.2)}50%{box-shadow:0 0 0 1px rgba(255,255,255,.15),0 8px 40px rgba(var(--p),.7),0 0 100px rgba(var(--p),.4)}}
-#playBtn svg{width:28px;height:28px;display:block;margin-left:3px}
+#playBtn:hover{transform:scale(1.07);box-shadow:0 10px 40px rgba(124,111,255,.55),0 0 0 10px rgba(124,111,255,.08)}
+#playBtn:active{transform:scale(.92)}
+.playing #playBtn{animation:play-pulse 2.5s ease-in-out infinite}
+@keyframes play-pulse{0%,100%{box-shadow:0 8px 30px rgba(124,111,255,.4),0 0 0 0 rgba(124,111,255,.1)}50%{box-shadow:0 10px 40px rgba(124,111,255,.6),0 0 0 12px rgba(124,111,255,.06)}}
+#playBtn svg{width:24px;height:24px;display:block;margin-left:2px}
 #playBtn.paused svg{margin-left:3px}
-#playBtn.playing svg{margin-left:0}
 
-/* ── VOLUME ── */
-#volWrap{
-  flex-shrink:0;
-  display:flex;align-items:center;gap:10px;
-  padding:0 0 20px;
-}
-.vico{color:rgba(255,255,255,.2);display:flex;align-items:center}
-.vico svg{width:14px;height:14px;display:block}
+/* VOL */
+#volRow{display:flex;align-items:center;gap:10px;padding-top:14px;flex-shrink:0}
+.vi{color:var(--dim);display:flex;align-items:center;flex-shrink:0}
+.vi svg{width:14px;height:14px;display:block}
 input[type=range]{
   flex:1;-webkit-appearance:none;height:2px;border-radius:1px;
-  background:linear-gradient(to right,rgba(var(--a),.7) calc(var(--p2,85)*1%),rgba(255,255,255,.08) calc(var(--p2,85)*1%));
+  background:linear-gradient(to right,var(--ac) calc(var(--pv,80)*1%),rgba(255,255,255,.08) calc(var(--pv,80)*1%));
   cursor:pointer;outline:none;
 }
 input[type=range]::-webkit-slider-thumb{
   -webkit-appearance:none;width:14px;height:14px;border-radius:50%;
-  background:#fff;cursor:pointer;box-shadow:0 0 8px rgba(var(--a),.6);
+  background:var(--txt);cursor:pointer;box-shadow:0 0 8px rgba(124,111,255,.5);
   transition:transform .15s;
 }
-input[type=range]:hover::-webkit-slider-thumb{transform:scale(1.3)}
-.vval{font-family:var(--narrow);font-size:10px;color:rgba(255,255,255,.2);min-width:22px;text-align:right;letter-spacing:1px}
+input[type=range]:hover::-webkit-slider-thumb{transform:scale(1.25)}
+.vval{font-family:var(--mono);font-size:9px;color:var(--dim);min-width:20px;text-align:right;letter-spacing:1px}
 
-/* ── LOAD OVERLAY ── */
-#loadOverlay{
-  position:absolute;inset:0;z-index:30;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
-  background:rgba(0,0,5,.7);backdrop-filter:blur(8px);
-  opacity:0;pointer-events:none;transition:opacity .25s;
-}
-#loadOverlay.show{opacity:1}
-.spinner{width:32px;height:32px;border:2px solid rgba(255,255,255,.08);border-top-color:rgba(var(--p),1);border-radius:50%;animation:spin .8s linear infinite}
+/* LOAD OVERLAY */
+#loadOv{position:absolute;inset:0;border-radius:16px;z-index:20;display:flex;align-items:center;justify-content:center;background:rgba(4,4,10,.75);backdrop-filter:blur(6px);opacity:0;pointer-events:none;transition:opacity .25s}
+#loadOv.on{opacity:1}
+.spin{width:28px;height:28px;border:2px solid rgba(255,255,255,.06);border-top-color:var(--ac);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.loadtxt{font-family:var(--narrow);font-size:10px;letter-spacing:4px;color:rgba(255,255,255,.3)}
 
-/* ═══════════════════════════════════
+/* ══════════════════════════════════════
    LIBRARY
-═══════════════════════════════════ */
-#pgLib{background:rgba(0,0,5,.5);backdrop-filter:blur(30px)}
-
-#libHdr{
-  flex-shrink:0;padding:20px 20px 14px;
-  display:flex;align-items:center;justify-content:space-between;
-  border-bottom:1px solid rgba(255,255,255,.05);
-}
-.lib-wordmark{font-family:var(--display);font-size:28px;letter-spacing:2px;color:#fff}
-.add-btn{
-  display:flex;align-items:center;gap:6px;
-  padding:8px 16px;border-radius:2px;
-  border:1px solid rgba(var(--a),.35);background:rgba(var(--a),.08);
-  color:rgba(var(--a),1);font-family:var(--narrow);font-size:10px;font-weight:700;
-  letter-spacing:2px;cursor:pointer;transition:all .18s;-webkit-appearance:none;
-}
-.add-btn:hover,.add-btn:active{background:rgba(var(--a),.18);border-color:rgba(var(--a),.6)}
-.add-btn svg{width:12px;height:12px;display:block}
-
-/* ADD MENU */
-#addMenu{
-  flex-shrink:0;margin:0 20px;overflow:hidden;
-  max-height:0;transition:max-height .3s var(--ease);
-}
-#addMenu.open{max-height:200px}
-.add-option{
-  display:flex;align-items:center;gap:12px;
-  padding:13px 16px;background:rgba(255,255,255,.03);
-  border:1px solid rgba(255,255,255,.06);border-radius:2px;
-  cursor:pointer;transition:all .15s;margin-bottom:2px;
-  -webkit-appearance:none;color:#fff;font-family:var(--body);
-  width:100%;text-align:left;
-}
-.add-option:hover,.add-option:active{background:rgba(255,255,255,.07)}
-.add-option svg{width:16px;height:16px;display:block;color:rgba(var(--a),1);flex-shrink:0}
-.add-opt-label{font-family:var(--narrow);font-size:13px;font-weight:700;letter-spacing:.5px}
-.add-opt-sub{font-family:var(--narrow);font-size:10px;color:rgba(255,255,255,.3);letter-spacing:1px;margin-top:2px}
-
-/* SEARCH */
-#srchWrap{flex-shrink:0;padding:12px 20px 8px;position:relative}
+══════════════════════════════════════ */
+#pgLib{flex-direction:column}
+#libHead{flex-shrink:0;padding:14px 18px 10px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line)}
+.lib-title{font-size:13px;font-weight:700;letter-spacing:3px;color:var(--dim);text-transform:uppercase;flex:1}
+#libStats{font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:1px;flex-shrink:0}
+#srchWrap{flex-shrink:0;padding:10px 18px;position:relative}
 #srch{
-  width:100%;background:rgba(255,255,255,.04);
-  border:1px solid rgba(255,255,255,.06);border-radius:2px;
-  padding:10px 14px 10px 36px;color:#fff;
-  font-family:var(--narrow);font-size:13px;letter-spacing:.5px;outline:none;
-  transition:border-color .2s;-webkit-appearance:none;
+  width:100%;background:var(--s2);border:1px solid var(--line);border-radius:8px;
+  padding:9px 14px 9px 36px;color:var(--txt);font-family:var(--sans);font-size:12px;
+  outline:none;transition:border-color .2s;-webkit-appearance:none;letter-spacing:.3px;
 }
-#srch:focus{border-color:rgba(255,255,255,.15)}
-#srch::placeholder{color:rgba(255,255,255,.18)}
-.srch-ico{position:absolute;left:34px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.2);pointer-events:none}
-.srch-ico svg{width:14px;height:14px;display:block}
-
-/* TRACK LIST */
-#trkScroll{flex:1;overflow-y:auto;padding:0 20px 20px;scrollbar-width:none}
+#srch:focus{border-color:rgba(124,111,255,.3)}
+#srch::placeholder{color:var(--dim)}
+.srch-ic{position:absolute;left:30px;top:50%;transform:translateY(-50%);color:var(--dim);pointer-events:none}
+.srch-ic svg{width:14px;height:14px;display:block}
+/* Add button row */
+#addRow{flex-shrink:0;display:flex;gap:6px;padding:0 18px 10px}
+.add-btn-main{
+  flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
+  padding:9px;border-radius:8px;
+  background:rgba(124,111,255,.1);border:1px solid rgba(124,111,255,.25);
+  color:var(--ac);font-family:var(--sans);font-size:11px;font-weight:600;
+  letter-spacing:1px;cursor:pointer;-webkit-appearance:none;transition:all .18s;
+}
+.add-btn-main:hover,.add-btn-main:active{background:rgba(124,111,255,.2);border-color:rgba(124,111,255,.5)}
+.add-btn-main svg{width:13px;height:13px;display:block;flex-shrink:0}
+#trkScroll{flex:1;overflow-y:auto;scrollbar-width:none;padding:0 18px 16px}
 #trkScroll::-webkit-scrollbar{display:none}
 #trkList{display:flex;flex-direction:column;gap:1px}
 
 .trk{
-  display:grid;
-  grid-template-columns:32px 48px 1fr auto auto;
-  align-items:center;gap:12px;
-  padding:10px 12px;border-radius:2px;
-  cursor:pointer;transition:background .15s;min-height:66px;
+  display:flex;align-items:center;gap:12px;
+  padding:9px 10px;border-radius:8px;cursor:pointer;
+  transition:background .15s;min-height:60px;
   position:relative;
 }
-.trk:hover,.trk:active{background:rgba(255,255,255,.04)}
-.trk.on{background:rgba(var(--p),.08)}
-.trk.on .trk-name{color:rgba(var(--p),1)}
-.trk.on::before{
-  content:'';position:absolute;left:0;top:0;bottom:0;width:2px;
-  background:linear-gradient(180deg,rgba(var(--p),1),rgba(var(--a),1));
-  border-radius:0 1px 1px 0;
-}
-.trk-num{font-family:var(--display);font-size:14px;color:rgba(255,255,255,.15);text-align:center;line-height:1}
-.trk-num.playing-ic{display:flex;align-items:center;justify-content:center}
-.trk-art{width:48px;height:48px;border-radius:2px;object-fit:cover;display:block;background:rgba(255,255,255,.04)}
-.trk-info{min-width:0}
-.trk-name{font-family:var(--narrow);font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff;transition:color .2s;letter-spacing:.3px}
-.trk-meta{font-family:var(--narrow);font-size:11px;color:rgba(255,255,255,.25);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px;letter-spacing:.3px}
-.trk-dur{font-family:var(--narrow);font-size:10px;color:rgba(255,255,255,.2);letter-spacing:1px;flex-shrink:0}
-.trk-del{
-  background:none;border:none;cursor:pointer;
-  color:rgba(255,255,255,.12);width:28px;height:28px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  transition:color .15s,background .15s;flex-shrink:0;-webkit-appearance:none;
-  opacity:0;
-}
+.trk:hover{background:var(--s2)}
+.trk.on{background:rgba(124,111,255,.08)}
+.trk.on .trk-name{color:var(--ac)}
+.trk.on::before{content:'';position:absolute;left:0;top:8px;bottom:8px;width:2px;background:linear-gradient(180deg,var(--ac),var(--ac2));border-radius:1px}
+.trk-n{font-family:var(--mono);font-size:10px;color:var(--dim);width:22px;text-align:center;flex-shrink:0}
+.trk-art{width:44px;height:44px;border-radius:6px;object-fit:cover;display:block;background:var(--s3);flex-shrink:0}
+.trk-info{flex:1;min-width:0}
+.trk-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--txt);transition:color .2s;letter-spacing:-.1px}
+.trk-sub{font-size:11px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.trk-dur{font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:1px;flex-shrink:0}
+.trk-del{background:none;border:none;cursor:pointer;color:var(--dim);width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;opacity:0;-webkit-appearance:none}
 .trk:hover .trk-del{opacity:1}
-.trk-del:hover{color:rgba(255,100,100,1);background:rgba(255,100,100,.1)}
+.trk-del:hover{color:#ff6b6b;background:rgba(255,107,107,.1)}
 .trk-del svg{width:13px;height:13px;display:block}
 
-/* EMPTY STATE */
-.lib-empty{
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:16px;padding:60px 20px;text-align:center;flex:1;
-}
-.lib-empty-icon{font-family:var(--display);font-size:80px;line-height:1;color:rgba(255,255,255,.04);letter-spacing:-2px}
-.lib-empty p{font-family:var(--narrow);font-size:13px;color:rgba(255,255,255,.25);line-height:1.8;letter-spacing:.5px}
-.lib-empty-btn{
-  display:flex;align-items:center;gap:8px;padding:12px 24px;
-  border:1px solid rgba(var(--a),.35);background:rgba(var(--a),.08);
-  color:rgba(var(--a),1);font-family:var(--narrow);font-size:12px;font-weight:700;
-  letter-spacing:2px;cursor:pointer;-webkit-appearance:none;transition:all .18s;border-radius:2px;
-}
-.lib-empty-btn:hover{background:rgba(var(--a),.18)}
-.lib-empty-btn svg{width:14px;height:14px;display:block}
+/* Playing bars */
+.pbars{display:flex;align-items:flex-end;gap:2px;height:14px}
+.pbar{width:2px;border-radius:1px;background:var(--ac)}
+.pbar:nth-child(1){animation:bar1 .6s ease-in-out infinite;height:8px}
+.pbar:nth-child(2){animation:bar2 .6s ease-in-out infinite .1s;height:12px}
+.pbar:nth-child(3){animation:bar3 .6s ease-in-out infinite .2s;height:6px}
+@keyframes bar1{0%,100%{transform:scaleY(.3)}50%{transform:scaleY(1)}}
+@keyframes bar2{0%,100%{transform:scaleY(.5)}50%{transform:scaleY(.2)}}
+@keyframes bar3{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.4)}}
 
-/* ── NAV BAR ── */
-#nav{
-  flex-shrink:0;
-  display:flex;
-  border-top:1px solid rgba(255,255,255,.05);
-  background:rgba(0,0,5,.6);backdrop-filter:blur(20px);
-  position:relative;z-index:20;
+.lib-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:48px 0;text-align:center}
+.lib-empty svg{width:40px;height:40px;color:var(--s3);opacity:.8}
+.lib-empty p{font-size:12px;color:var(--sub);line-height:1.7;letter-spacing:.3px}
+
+/* ══════════════════════════════════════
+   PLAYLISTS
+══════════════════════════════════════ */
+#pgPlaylists{flex-direction:column}
+#plHead{flex-shrink:0;padding:14px 18px 10px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line)}
+.pl-title{font-size:13px;font-weight:700;letter-spacing:3px;color:var(--dim);text-transform:uppercase;flex:1}
+#plScroll{flex:1;overflow-y:auto;scrollbar-width:none;padding:12px 18px 16px}
+#plScroll::-webkit-scrollbar{display:none}
+#plList{display:flex;flex-direction:column;gap:6px}
+
+/* Create new */
+#newPlCard{
+  display:flex;align-items:center;gap:12px;padding:12px;border-radius:10px;
+  border:1px dashed rgba(124,111,255,.25);background:rgba(124,111,255,.04);
+  cursor:pointer;transition:all .18s;
 }
-.nav-btn{
-  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:4px;padding:12px 8px;cursor:pointer;
-  border:none;background:none;-webkit-appearance:none;
-  color:rgba(255,255,255,.2);transition:color .2s;
-  font-family:var(--narrow);font-size:9px;letter-spacing:2px;font-weight:700;text-transform:uppercase;
+#newPlCard:hover{border-color:rgba(124,111,255,.5);background:rgba(124,111,255,.1)}
+.new-pl-ico{width:44px;height:44px;border-radius:8px;background:rgba(124,111,255,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--ac)}
+.new-pl-ico svg{width:20px;height:20px;display:block}
+.new-pl-label{font-size:13px;font-weight:600;color:var(--ac);letter-spacing:.3px}
+.new-pl-sub{font-size:11px;color:var(--dim);margin-top:2px}
+
+.pl-card{
+  display:flex;align-items:center;gap:12px;padding:12px;border-radius:10px;
+  background:var(--s1);border:1px solid var(--line);cursor:pointer;transition:all .18s;
+  position:relative;
 }
-.nav-btn:active{opacity:.7}
-.nav-btn.on{color:rgba(var(--a),1)}
-.nav-btn svg{width:20px;height:20px;display:block}
-.nav-indicator{
-  position:absolute;bottom:0;height:2px;
-  background:linear-gradient(90deg,rgba(var(--p),1),rgba(var(--a),1));
-  border-radius:1px;transition:left .3s var(--ease),width .3s var(--ease);
+.pl-card:hover{background:var(--s2);border-color:var(--line2)}
+.pl-card.active-pl{border-color:rgba(124,111,255,.35);background:rgba(124,111,255,.06)}
+.pl-art{
+  width:44px;height:44px;border-radius:8px;overflow:hidden;display:grid;
+  grid-template-columns:1fr 1fr;gap:1px;background:var(--s3);flex-shrink:0;
 }
+.pl-art img{width:100%;height:100%;object-fit:cover;display:block}
+.pl-art .pl-art-empty{width:100%;height:100%;background:var(--s3);display:flex;align-items:center;justify-content:center}
+.pl-info{flex:1;min-width:0}
+.pl-name{font-size:14px;font-weight:600;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.1px}
+.pl-ct{font-size:11px;color:var(--dim);margin-top:2px;letter-spacing:.3px}
+.pl-actions{display:flex;gap:4px;flex-shrink:0;opacity:0;transition:opacity .15s}
+.pl-card:hover .pl-actions{opacity:1}
+.pl-btn{background:none;border:none;cursor:pointer;color:var(--dim);width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;transition:all .15s;-webkit-appearance:none}
+.pl-btn:hover{color:var(--txt);background:rgba(255,255,255,.06)}
+.pl-btn svg{width:13px;height:13px;display:block}
+
+/* PLAYLIST DETAIL VIEW */
+#plDetail{
+  position:absolute;inset:0;background:var(--bg);z-index:10;
+  display:none;flex-direction:column;
+  transform:translateX(100%);transition:transform .3s var(--ease);
+}
+#plDetail.on{display:flex}
+#plDetail.slide-in{transform:translateX(0)}
+#plDetailHead{flex-shrink:0;padding:14px 18px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--line)}
+.back-btn{background:none;border:none;cursor:pointer;color:var(--sub);display:flex;align-items:center;gap:6px;font-family:var(--sans);font-size:12px;font-weight:600;letter-spacing:1px;-webkit-appearance:none;transition:color .15s}
+.back-btn:hover{color:var(--txt)}
+.back-btn svg{width:16px;height:16px;display:block}
+.pl-detail-name{flex:1;font-size:14px;font-weight:700;color:var(--txt);letter-spacing:-.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#plDetailScroll{flex:1;overflow-y:auto;scrollbar-width:none;padding:12px 18px 16px}
+#plDetailScroll::-webkit-scrollbar{display:none}
+.pl-detail-actions{display:flex;gap:8px;flex-shrink:0;margin-bottom:12px}
+.pla-btn{
+  flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
+  padding:10px;border-radius:8px;font-family:var(--sans);font-size:11px;font-weight:600;
+  letter-spacing:1px;cursor:pointer;-webkit-appearance:none;transition:all .18s;
+}
+.pla-play{background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff;border:none;box-shadow:0 4px 20px rgba(124,111,255,.3)}
+.pla-play:hover{box-shadow:0 6px 28px rgba(124,111,255,.5)}
+.pla-shuf{background:var(--s2);border:1px solid var(--line2);color:var(--sub)}
+.pla-shuf:hover{color:var(--txt)}
+.pla-btn svg{width:14px;height:14px;display:block}
+#plDetailList{display:flex;flex-direction:column;gap:1px}
+
+/* ADD TO PLAYLIST PICKER (floating) */
+#plPicker{
+  position:absolute;inset:0;z-index:30;background:rgba(4,4,10,.88);
+  backdrop-filter:blur(10px);display:none;flex-direction:column;
+  align-items:center;justify-content:flex-end;padding-bottom:0;
+}
+#plPicker.on{display:flex}
+#plPickerCard{
+  width:100%;background:var(--s1);border-radius:20px 20px 0 0;
+  border-top:1px solid var(--line2);padding:16px 18px 30px;
+  display:flex;flex-direction:column;gap:8px;
+  animation:slideup .3s var(--ease) both;
+}
+@keyframes slideup{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.picker-title{font-size:11px;font-weight:700;letter-spacing:3px;color:var(--dim);text-transform:uppercase;margin-bottom:4px}
+.picker-trk{font-size:13px;color:var(--sub);margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.picker-pl{display:flex;align-items:center;gap:10px;padding:10px;border-radius:8px;cursor:pointer;transition:background .15s}
+.picker-pl:hover{background:var(--s2)}
+.picker-pl-ico{width:36px;height:36px;border-radius:6px;background:var(--s3);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden}
+.picker-pl-ico img{width:100%;height:100%;object-fit:cover}
+.picker-pl-ico svg{width:16px;height:16px;color:var(--dim)}
+.picker-pl-name{font-size:13px;font-weight:500;color:var(--txt)}
+.picker-close{padding:10px;text-align:center;font-size:12px;color:var(--dim);cursor:pointer;letter-spacing:1px;margin-top:4px}
+
+/* NEW PLAYLIST MODAL */
+#plModal{
+  position:absolute;inset:0;z-index:35;background:rgba(4,4,10,.9);
+  backdrop-filter:blur(12px);display:none;flex-direction:column;
+  align-items:center;justify-content:center;padding:20px;
+}
+#plModal.on{display:flex}
+.pl-modal-card{
+  width:100%;background:var(--s1);border:1px solid var(--line2);border-radius:16px;
+  padding:20px;display:flex;flex-direction:column;gap:14px;
+  animation:popin .25s var(--ease2) both;
+}
+@keyframes popin{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+.pl-modal-title{font-size:14px;font-weight:700;letter-spacing:-.2px;color:var(--txt)}
+.pl-modal-input{
+  background:var(--s2);border:1px solid var(--line2);border-radius:8px;
+  padding:10px 14px;color:var(--txt);font-family:var(--sans);font-size:14px;
+  outline:none;transition:border-color .2s;-webkit-appearance:none;width:100%;
+}
+.pl-modal-input:focus{border-color:rgba(124,111,255,.5)}
+.pl-modal-input::placeholder{color:var(--dim)}
+.pl-modal-btns{display:flex;gap:8px}
+.pm-cancel{flex:1;padding:10px;border-radius:8px;background:var(--s2);border:1px solid var(--line2);color:var(--sub);font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;-webkit-appearance:none;letter-spacing:.5px}
+.pm-create{flex:1;padding:10px;border-radius:8px;background:linear-gradient(135deg,var(--ac),var(--ac2));border:none;color:#fff;font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;-webkit-appearance:none;letter-spacing:.5px}
 
 /* ── MINI PLAYER ── */
 #mini{
-  position:relative;z-index:20;
-  margin:0 12px 8px;border-radius:3px;
-  background:rgba(10,10,20,.8);border:1px solid rgba(255,255,255,.07);
+  flex-shrink:0;margin:0 10px 8px;border-radius:12px;
+  background:rgba(10,10,20,.95);border:1px solid var(--line2);
   backdrop-filter:blur(20px);
-  padding:10px 14px;display:flex;align-items:center;gap:12px;cursor:pointer;
+  display:none;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;
+  position:relative;overflow:hidden;
 }
-#mini.hidden{display:none}
-#mini::before{
-  content:'';position:absolute;inset:0;border-radius:3px;
-  background:linear-gradient(90deg,rgba(var(--p),.08),transparent);
-  pointer-events:none;
-}
-.mp-art{width:42px;height:42px;border-radius:2px;flex-shrink:0;object-fit:cover;background:rgba(255,255,255,.04)}
+#mini.on{display:flex}
+#mini::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(124,111,255,.08),transparent);pointer-events:none}
+.mp-art{width:38px;height:38px;border-radius:6px;flex-shrink:0;object-fit:cover;background:var(--s3)}
 .mp-info{flex:1;min-width:0}
-.mp-t{font-family:var(--narrow);font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff;letter-spacing:.3px}
-.mp-a{font-family:var(--narrow);font-size:10px;color:rgba(255,255,255,.3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;letter-spacing:.5px}
-.mp-ctrls{display:flex;align-items:center;gap:4px;flex-shrink:0}
-.mp-btn{background:none;border:none;cursor:pointer;color:rgba(255,255,255,.4);width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:color .15s;-webkit-appearance:none}
-.mp-btn:hover,.mp-btn:active{color:#fff}
-.mp-btn svg{width:18px;height:18px;display:block}
-.mp-prog{position:absolute;bottom:0;left:0;right:0;height:1px;background:rgba(255,255,255,.05);border-radius:0 0 3px 3px;overflow:hidden}
-.mp-fill{height:100%;background:linear-gradient(90deg,rgba(var(--p),1),rgba(var(--a),1));transition:width .1s linear}
+.mp-t{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--txt);letter-spacing:-.1px}
+.mp-a{font-size:10px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.mp-ctrls{display:flex;align-items:center;gap:2px;flex-shrink:0}
+.mp-btn{background:none;border:none;cursor:pointer;color:var(--sub);width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;transition:all .15s;-webkit-appearance:none}
+.mp-btn:hover,.mp-btn:active{color:var(--txt);background:rgba(255,255,255,.06)}
+.mp-btn svg{width:17px;height:17px;display:block}
+.mp-prog{position:absolute;bottom:0;left:0;right:0;height:1px;background:rgba(255,255,255,.05)}
+.mp-fill{height:100%;background:linear-gradient(90deg,var(--ac),var(--ac2));transition:width .1s linear}
+
+/* ── NAV ── */
+#nav{
+  flex-shrink:0;display:flex;
+  border-top:1px solid var(--line);background:rgba(4,4,10,.8);
+  backdrop-filter:blur(20px);
+}
+.nav-btn{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:4px;padding:10px 4px;cursor:pointer;border:none;background:none;
+  font-family:var(--sans);font-size:9px;font-weight:600;letter-spacing:1.5px;
+  color:var(--dim);text-transform:uppercase;-webkit-appearance:none;transition:color .2s;
+  position:relative;
+}
+.nav-btn::after{content:'';position:absolute;top:0;left:20%;right:20%;height:2px;background:linear-gradient(90deg,var(--ac),var(--ac2));border-radius:0 0 2px 2px;opacity:0;transition:opacity .2s}
+.nav-btn.on{color:var(--txt)}
+.nav-btn.on::after{opacity:1}
+.nav-btn svg{width:19px;height:19px;display:block}
 
 /* ── TOAST ── */
 #toast{
-  position:absolute;bottom:16px;left:50%;transform:translateX(-50%) translateY(4px);
-  z-index:50;padding:8px 18px;border-radius:2px;
-  background:rgba(20,20,30,.95);border:1px solid rgba(255,255,255,.08);
-  color:rgba(255,255,255,.7);font-family:var(--narrow);font-size:11px;letter-spacing:1.5px;
-  opacity:0;transition:all .25s var(--ease);pointer-events:none;white-space:nowrap;
+  position:absolute;bottom:12px;left:50%;transform:translateX(-50%) translateY(4px);
+  z-index:99;padding:8px 16px;border-radius:6px;
+  background:var(--s2);border:1px solid var(--line2);color:var(--sub);
+  font-size:11px;font-weight:500;letter-spacing:.5px;
+  opacity:0;transition:all .22s var(--ease);pointer-events:none;white-space:nowrap;
 }
-#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 
-/* ── PROCESSING ── */
-#proc{
-  position:absolute;bottom:16px;left:50%;transform:translateX(-50%);
-  z-index:50;padding:8px 18px;border-radius:2px;
-  background:rgba(20,20,30,.95);border:1px solid rgba(255,255,255,.08);
-  color:rgba(255,255,255,.4);font-family:var(--narrow);font-size:11px;letter-spacing:1.5px;
-  display:none;align-items:center;gap:10px;pointer-events:none;
+/* ── CONTEXT MENU ── */
+#ctx{
+  position:absolute;z-index:50;background:var(--s2);border:1px solid var(--line2);
+  border-radius:10px;padding:4px;display:none;flex-direction:column;gap:1px;
+  box-shadow:0 20px 60px rgba(0,0,0,.6);min-width:180px;
+  animation:ctxin .15s var(--ease) both;
 }
-#proc.show{display:flex}
-#proc .spinner{width:12px;height:12px;border-width:1.5px}
-
-/* ── PLAYING BARS ANIMATION ── */
-.bars{display:flex;align-items:flex-end;gap:2px;height:14px}
-.bar{width:2px;border-radius:1px;background:rgba(var(--p),1);animation:barbeat .8s ease-in-out infinite}
-.bar:nth-child(2){animation-delay:.15s;height:8px}
-.bar:nth-child(3){animation-delay:.3s;height:12px}
-.bar:nth-child(1){height:10px}
-@keyframes barbeat{0%,100%{transform:scaleY(.4)}50%{transform:scaleY(1)}}
-
-/* ═══════════════════════════════════
-   CHARACTER STAGE
-═══════════════════════════════════ */
-#charStage{
-  flex-shrink:0;
-  height:110px;
-  position:relative;
-  overflow:hidden;
-  margin:0 0 4px;
-}
-/* Ground line */
-#charStage::after{
-  content:'';position:absolute;bottom:0;left:0;right:0;
-  height:1px;background:rgba(255,255,255,.06);
-}
-/* Shadow under each character */
-.char-shadow{
-  position:absolute;bottom:2px;
-  width:40px;height:6px;border-radius:50%;
-  background:rgba(0,0,0,.35);
-  filter:blur(3px);
-  left:50%;transform:translateX(-50%);
-  transition:opacity .4s;
-}
-/* Character wrapper — positions the SVG */
-.char{
-  position:absolute;
-  bottom:8px;
-  left:50%;
-  transform:translateX(-50%);
-  display:none;
-  flex-direction:column;
-  align-items:center;
-}
-.char.active{display:flex}
-
-/* ── BREAKDANCE MOVES ── */
-/* Character SVGs share these animation classes */
-@keyframes bboy-spin{
-  0%{transform:translateX(-50%) rotate(0deg)}
-  100%{transform:translateX(-50%) rotate(360deg)}
-}
-@keyframes bboy-freeze{
-  0%,100%{transform:translateX(-50%) rotate(-20deg) scaleX(-1)}
-  50%{transform:translateX(-50%) rotate(20deg) scaleX(-1)}
-}
-@keyframes bboy-bounce{
-  0%,100%{transform:translateX(-50%) translateY(0) scaleX(1)}
-  25%{transform:translateX(-54%) translateY(-18px) scaleX(1)}
-  50%{transform:translateX(-46%) translateY(-8px) scaleX(-1)}
-  75%{transform:translateX(-50%) translateY(-22px) scaleX(1)}
-}
-@keyframes bboy-windmill{
-  0%{transform:translateX(-50%) rotate(0deg) scale(1)}
-  25%{transform:translateX(-50%) rotate(90deg) scale(.9)}
-  50%{transform:translateX(-50%) rotate(180deg) scale(1.1)}
-  75%{transform:translateX(-50%) rotate(270deg) scale(.9)}
-  100%{transform:translateX(-50%) rotate(360deg) scale(1)}
-}
-@keyframes bboy-toprock{
-  0%,100%{transform:translateX(-50%) translateY(0) rotate(0deg)}
-  20%{transform:translateX(-54%) translateY(-6px) rotate(-8deg)}
-  40%{transform:translateX(-46%) translateY(-10px) rotate(6deg)}
-  60%{transform:translateX(-52%) translateY(-4px) rotate(-4deg)}
-  80%{transform:translateX(-48%) translateY(-8px) rotate(5deg)}
-}
-@keyframes bboy-headspin{
-  0%{transform:translateX(-50%) rotate(0deg) translateY(0)}
-  50%{transform:translateX(-50%) rotate(180deg) translateY(-5px)}
-  100%{transform:translateX(-50%) rotate(360deg) translateY(0)}
-}
-@keyframes idle-bob{
-  0%,100%{transform:translateX(-50%) translateY(0)}
-  50%{transform:translateX(-50%) translateY(-4px)}
-}
-
-/* Move variations applied to .char when playing */
-.char.move-bounce{animation:bboy-bounce .7s ease-in-out infinite}
-.char.move-spin{animation:bboy-spin .6s linear infinite}
-.char.move-freeze{animation:bboy-freeze 1.2s ease-in-out infinite}
-.char.move-windmill{animation:bboy-windmill .8s linear infinite}
-.char.move-toprock{animation:bboy-toprock .9s ease-in-out infinite}
-.char.move-headspin{animation:bboy-headspin .5s linear infinite}
-.char.move-idle{animation:idle-bob 1.4s ease-in-out infinite}
-
-/* ── LIMB ANIMATIONS (internal to SVG) ── */
-@keyframes arm-wave{0%,100%{transform:rotate(-20deg)}50%{transform:rotate(20deg)}}
-@keyframes leg-kick{0%,100%{transform:rotate(10deg)}50%{transform:rotate(-30deg)}}
-@keyframes head-nod{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
-@keyframes tail-wag{0%,100%{transform:rotate(-15deg)}50%{transform:rotate(15deg)}}
-@keyframes ear-bounce{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.15)}}
-@keyframes skirt-sway{0%,100%{transform:skewX(0deg)}50%{transform:skewX(8deg)}}
-
-.arm-l{transform-origin:top center;animation:arm-wave .6s ease-in-out infinite}
-.arm-r{transform-origin:top center;animation:arm-wave .6s ease-in-out infinite reverse}
-.leg-l{transform-origin:top center;animation:leg-kick .6s ease-in-out infinite}
-.leg-r{transform-origin:top center;animation:leg-kick .6s ease-in-out infinite reverse}
-.head{transform-origin:center bottom;animation:head-nod .6s ease-in-out infinite}
-.tail{transform-origin:top left;animation:tail-wag .8s ease-in-out infinite}
-.ear{transform-origin:bottom center;animation:ear-bounce .6s ease-in-out infinite}
-.skirt{transform-origin:top center;animation:skirt-sway .6s ease-in-out infinite}
-
-/* Companion dog */
-#dogChar{
-  position:absolute;bottom:8px;right:30%;
-  display:none;flex-direction:column;align-items:center;
-}
-#dogChar.active{display:flex;animation:idle-bob 1s ease-in-out infinite .2s}
-@keyframes dog-run{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px) scaleX(-1)}75%{transform:translateX(4px) scaleX(1)}}
-#dogChar.move-run{animation:dog-run .4s ease-in-out infinite}
-
+@keyframes ctxin{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+#ctx.on{display:flex}
+.ctx-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:6px;cursor:pointer;transition:background .12s;font-size:12px;font-weight:500;color:var(--sub);letter-spacing:.3px}
+.ctx-item:hover{background:var(--s3);color:var(--txt)}
+.ctx-item svg{width:14px;height:14px;display:block;flex-shrink:0}
+.ctx-sep{height:1px;background:var(--line);margin:3px 0}
 </style>
 </head>
 <body>
 
-<!-- FILE INPUTS -->
-<input type="file" id="fpAudio" multiple accept="audio/*,.flac,.wav,.mp3,.m4a,.aac,.ogg,.opus" onchange="addFiles(this.files)">
-<input type="file" id="fpFolder" multiple webkitdirectory onchange="addFiles(this.files)">
+<input type="file" id="fpAudio" multiple accept="audio/*,.flac,.wav,.mp3,.m4a,.aac,.ogg,.opus" style="display:none" onchange="addFiles(this.files)">
+<input type="file" id="fpFolder" multiple webkitdirectory style="display:none" onchange="addFiles(this.files)">
 
-<div id="app" style="position:relative;overflow:hidden">
-  <!-- CINEMATIC BACKGROUND — inside app, cannot block clicks -->
-  <div id="bg" style="pointer-events:none">
-    <div id="bg-art"></div>
-    <div id="bg-vignette"></div>
-    <div id="orb1"></div>
-    <div id="orb2"></div>
+<div id="app">
+
+  <!-- BG -->
+  <div id="bgLayer" aria-hidden="true">
+    <div id="bgBlur"></div>
+    <div id="bgGrad"></div>
+    <div id="bgGrid"></div>
+    <div id="scan"></div>
   </div>
-  <div id="grain" style="pointer-events:none"></div>
 
-  <!-- HEADER -->
-  <div id="hdr">
-    <div class="logo">CHROMATIC</div>
-    <div class="hdr-btns">
-      <button class="hdr-btn" id="btnShuffle" onclick="togShuffle()" title="Shuffle">
+  <div id="content">
+
+    <!-- TOP BAR -->
+    <div id="topbar">
+      <div class="app-name">Chromatic</div>
+      <div class="tb-spacer"></div>
+      <button class="ico-btn" id="btnShuffle" onclick="togShuffle()" title="Shuffle">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5M4 20l16-16M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>
       </button>
-      <button class="hdr-btn" id="btnRepeat" onclick="togRepeat()" title="Repeat">
+      <button class="ico-btn" id="btnRepeat" onclick="togRepeat()" title="Repeat">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 014-4h14M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>
       </button>
-      <button class="hdr-btn" id="btnLike" onclick="togLike()" title="Like">
+      <button class="ico-btn" id="btnLike" onclick="togLike()" title="Like">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
       </button>
     </div>
-  </div>
 
-  <!-- PAGES -->
-  <div id="pages">
+    <!-- TABS -->
+    <div id="tabs">
+      <button class="tab on" id="tab0" onclick="goTab(0)">Now Playing</button>
+      <button class="tab" id="tab1" onclick="goTab(1)">Library</button>
+      <button class="tab" id="tab2" onclick="goTab(2)">Playlists</button>
+    </div>
 
-    <!-- NOW PLAYING -->
-    <div class="page on" id="pgNow">
-      <div id="trkNumBg">01</div>
-      <div id="loadOverlay"><div class="spinner"></div><div class="loadtxt">LOADING</div></div>
+    <div id="pages">
 
-      <div id="nowContent">
-        <!-- Art circle -->
-        <div id="artWrap">
-          <img id="artImg" src="" alt="">
-          <div id="artCenter"></div>
-        </div>
+      <!-- NOW PLAYING -->
+      <div class="page on" id="pgNow">
 
-        <!-- Title block -->
-        <div id="titleBlock">
-          <div id="tArtist">— Select a track to begin —</div>
-          <div id="tTitle">CHROMATIC</div>
-          <div id="tAlbum"></div>
-          <div id="tChips"></div>
-        </div>
-      </div>
+        <div id="artSection">
+          <div id="artFrame">
+            <img id="artImg" src="" alt="Cover">
+            <div id="artSheen"></div>
+            <div id="loadOv"><div class="spin"></div></div>
 
+            <!-- CHARACTER STAGE -->
+            <div id="charStage">
+              <!-- Jakara (elf girl breakdancer) -->
+              <div class="char-slot m-idle" id="cJakara">
+                <svg width="52" height="78" viewBox="0 0 52 78"><defs><filter id="glow"><feGaussianBlur stdDeviation="1.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+                  <!-- Pointy ears --><path d="M14 22 L9 16 L13 23" fill="#f5c87a"/><path d="M38 22 L43 16 L39 23" fill="#f5c87a"/>
+                  <!-- Hair --><ellipse cx="26" cy="16" rx="12" ry="12" fill="#d4920e"/>
+                  <path d="M14 12 Q10 4 16 2 Q22 0 24 8" fill="#d4920e"/>
+                  <!-- Head --><g class="a-head"><ellipse cx="26" cy="22" rx="9" ry="9" fill="#f5c87a"/><circle cx="23" cy="21" r="1.5" fill="#2a2060"/><circle cx="29" cy="21" r="1.5" fill="#2a2060"/><path d="M23 25 Q26 27 29 25" stroke="#c08040" stroke-width="1" fill="none" stroke-linecap="round"/></g>
+                  <!-- Body --><rect x="19" y="31" width="14" height="12" rx="3" fill="#1a7a50"/>
+                  <!-- Arms --><g class="a-arm-l"><rect x="9" y="31" width="8" height="14" rx="4" fill="#f5c87a" transform="rotate(-8 9 31)"/></g><g class="a-arm-r"><rect x="35" y="31" width="8" height="14" rx="4" fill="#f5c87a" transform="rotate(8 43 31)"/></g>
+                  <!-- Skirt --><path d="M17 43 Q19 56 26 56 Q33 56 35 43Z" fill="#2050b0"/>
+                  <!-- Legs --><g class="a-leg-l"><rect x="19" y="56" width="6" height="16" rx="3" fill="#f5c87a" transform="rotate(-4 19 56)"/></g><g class="a-leg-r"><rect x="27" y="56" width="6" height="16" rx="3" fill="#f5c87a" transform="rotate(4 33 56)"/></g>
+                  <ellipse cx="22" cy="73" rx="5" ry="3" fill="#102090"/><ellipse cx="30" cy="73" rx="5" ry="3" fill="#102090"/>
+                </svg>
+                <!-- Daxa companion --><svg width="28" height="40" viewBox="0 0 28 40" style="margin-left:-8px;margin-bottom:2px">
+                  <g class="a-arm-l"><ellipse cx="4" cy="18" rx="3" ry="6" fill="#e05010" transform="rotate(-10 4 18)"/></g>
+                  <g class="a-tail"><path d="M22 20 Q30 14 28 8 Q24 10 22 16" fill="#e05010"/></g>
+                  <ellipse cx="14" cy="8" rx="7" ry="7" fill="#e05010"/><ellipse cx="8" cy="4" rx="4" ry="6" fill="#e05010"/><ellipse cx="20" cy="4" rx="4" ry="6" fill="#e05010"/>
+                  <ellipse cx="14" cy="11" rx="5" ry="4" fill="#f4a060"/><circle cx="12" cy="7" r="1.5" fill="#1a1a1a"/><circle cx="16" cy="7" r="1.5" fill="#1a1a1a"/>
+                  <rect x="8" y="15" width="12" height="10" rx="3" fill="#b030b0"/>
+                  <rect x="8" y="25" width="5" height="12" rx="3" fill="#e05010"/><rect x="15" y="25" width="5" height="12" rx="3" fill="#e05010"/>
+                </svg>
+              </div>
 
-      <!-- CHARACTER STAGE -->
-      <div id="charStage">
+              <!-- Spyra (purple dragon girl) -->
+              <div class="char-slot m-idle" id="cSpyra">
+                <svg width="58" height="82" viewBox="0 0 58 82">
+                  <path d="M8 28 Q-4 16 2 32 Q8 36 16 34" fill="#b050c0" opacity=".85"/>
+                  <path d="M50 28 Q62 16 56 32 Q50 36 42 34" fill="#b050c0" opacity=".85"/>
+                  <path d="M22 12 L19 2 L25 10" fill="#ffd700"/><path d="M36 12 L39 2 L33 10" fill="#ffd700"/>
+                  <g class="a-head"><ellipse cx="29" cy="20" rx="13" ry="12" fill="#8030b0"/><ellipse cx="29" cy="25" rx="8" ry="5" fill="#c070d0"/><circle cx="25" cy="18" r="2" fill="#ffd700"/><circle cx="33" cy="18" r="2" fill="#ffd700"/><circle cx="27" cy="26" r="1" fill="#602090"/><circle cx="31" cy="26" r="1" fill="#602090"/></g>
+                  <ellipse cx="29" cy="48" rx="13" ry="15" fill="#8030b0"/><ellipse cx="29" cy="48" rx="8" ry="10" fill="#c070d0"/>
+                  <g class="a-arm-l"><rect x="10" y="38" width="8" height="16" rx="4" fill="#8030b0" transform="rotate(-12 10 38)"/></g><g class="a-arm-r"><rect x="40" y="38" width="8" height="16" rx="4" fill="#8030b0" transform="rotate(12 48 38)"/></g>
+                  <path d="M18 60 Q20 72 29 72 Q38 72 40 60Z" fill="#6020a0"/>
+                  <g class="a-tail"><path d="M40 58 Q54 66 52 76 Q46 72 42 66 Q40 62 40 58Z" fill="#8030b0"/><path d="M50 76 L56 74 L54 80Z" fill="#ffd700"/></g>
+                  <g class="a-leg-l"><rect x="21" y="72" width="7" height="9" rx="3" fill="#8030b0" transform="rotate(-3 21 72)"/></g><g class="a-leg-r"><rect x="30" y="72" width="7" height="9" rx="3" fill="#8030b0" transform="rotate(3 37 72)"/></g>
+                </svg>
+              </div>
 
-        <!-- JAKARA (fem Jak) — elf girl with pointy ears, orange-blonde hair, breakdancer -->
-        <div class="char move-idle" id="charJakara">
-          <svg width="64" height="90" viewBox="0 0 64 90" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <!-- Hair -->
-            <ellipse class="head" cx="32" cy="18" rx="12" ry="14" fill="#E8A020"/>
-            <path d="M20 14 Q16 8 18 4 Q24 2 28 8" fill="#E8A020"/>
-            <path d="M44 14 Q48 8 46 4 Q40 2 36 8" fill="#E8A020"/>
-            <!-- Pointy elf ears -->
-            <path d="M20 20 L15 16 L19 22" fill="#F4C06A" stroke="#C8842A" stroke-width=".5"/>
-            <path d="M44 20 L49 16 L45 22" fill="#F4C06A" stroke="#C8842A" stroke-width=".5"/>
-            <!-- Face -->
-            <ellipse class="head" cx="32" cy="22" rx="9" ry="10" fill="#F4C06A"/>
-            <circle cx="29" cy="21" r="1.5" fill="#2a3060"/>
-            <circle cx="35" cy="21" r="1.5" fill="#2a3060"/>
-            <path d="M29 26 Q32 28 35 26" stroke="#C8842A" stroke-width="1" fill="none" stroke-linecap="round"/>
-            <!-- Crop top -->
-            <rect x="24" y="32" width="16" height="10" rx="2" fill="#1a9060"/>
-            <!-- Arms -->
-            <g class="arm-l"><rect x="14" y="32" width="5" height="14" rx="2" fill="#F4C06A" transform="rotate(-10 14 32)"/></g>
-            <g class="arm-r"><rect x="45" y="32" width="5" height="14" rx="2" fill="#F4C06A" transform="rotate(10 50 32)"/></g>
-            <!-- Skirt -->
-            <g class="skirt"><path d="M22 42 Q24 58 32 58 Q40 58 42 42Z" fill="#2a60c0"/></g>
-            <!-- Legs -->
-            <g class="leg-l"><rect x="25" y="58" width="5" height="18" rx="2" fill="#F4C06A" transform="rotate(-5 25 58)"/></g>
-            <g class="leg-r"><rect x="34" y="58" width="5" height="18" rx="2" fill="#F4C06A" transform="rotate(5 39 58)"/></g>
-            <!-- Shoes -->
-            <ellipse cx="27" cy="76" rx="5" ry="3" fill="#1a3080"/>
-            <ellipse cx="37" cy="76" rx="5" ry="3" fill="#1a3080"/>
-          </svg>
-          <div class="char-shadow"></div>
-        </div>
+              <!-- Crashina (orange bandicoot girl) -->
+              <div class="char-slot m-idle" id="cCrashina">
+                <svg width="54" height="82" viewBox="0 0 54 82">
+                  <path d="M12 18 Q8 6 14 4 Q20 2 22 10" fill="#c85010"/><path d="M42 18 Q46 6 40 4 Q34 2 32 10" fill="#c85010"/><path d="M18 14 Q16 4 24 2 Q30 4 28 12" fill="#c85010"/><path d="M36 14 Q38 4 30 2 Q24 4 26 12" fill="#c85010"/>
+                  <g class="a-head"><ellipse cx="27" cy="22" rx="13" ry="13" fill="#c85010"/><ellipse cx="27" cy="27" rx="9" ry="6" fill="#f0a060"/><circle cx="22" cy="20" r="2.5" fill="#111"/><circle cx="32" cy="20" r="2.5" fill="#111"/><ellipse cx="27" cy="24" rx="3" ry="2" fill="#904010"/><path d="M23 29 Q27 32 31 29" stroke="#904010" stroke-width="1.2" fill="none" stroke-linecap="round"/></g>
+                  <rect x="15" y="35" width="24" height="18" rx="3" fill="#3070c0"/>
+                  <rect x="19" y="31" width="5" height="7" rx="1" fill="#3070c0"/><rect x="30" y="31" width="5" height="7" rx="1" fill="#3070c0"/>
+                  <g class="a-arm-l"><rect x="5" y="35" width="9" height="18" rx="4" fill="#c85010" transform="rotate(-10 5 35)"/></g><g class="a-arm-r"><rect x="40" y="35" width="9" height="18" rx="4" fill="#c85010" transform="rotate(10 49 35)"/></g>
+                  <g class="a-leg-l"><rect x="16" y="53" width="9" height="18" rx="4" fill="#c85010" transform="rotate(-4 16 53)"/></g><g class="a-leg-r"><rect x="29" y="53" width="9" height="18" rx="4" fill="#c85010" transform="rotate(4 38 53)"/></g>
+                  <ellipse cx="20" cy="71" rx="7" ry="4" fill="#111"/><ellipse cx="34" cy="71" rx="7" ry="4" fill="#111"/>
+                </svg>
+              </div>
 
-        <!-- DAXA (fem Daxter) — orange ottsel girl, ponytail, tiny companion -->
-        <div class="char move-idle" id="charDaxa" style="left:38%;bottom:8px;transform:translateX(-50%) scale(.7)">
-          <svg width="44" height="64" viewBox="0 0 44 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <!-- Ears/head -->
-            <g class="ear"><ellipse cx="14" cy="10" rx="5" ry="8" fill="#E06010"/><ellipse cx="14" cy="10" rx="3" ry="5" fill="#F4A060"/></g>
-            <g class="ear"><ellipse cx="30" cy="10" rx="5" ry="8" fill="#E06010"/><ellipse cx="30" cy="10" rx="3" ry="5" fill="#F4A060"/></g>
-            <ellipse cx="22" cy="18" rx="11" ry="12" fill="#E06010"/>
-            <!-- Ponytail -->
-            <path d="M10 14 Q4 18 6 26 Q10 22 14 20" fill="#E06010"/>
-            <!-- Face muzzle -->
-            <ellipse cx="22" cy="22" rx="7" ry="5" fill="#F4C090"/>
-            <circle cx="19" cy="19" r="1.5" fill="#1a1a3a"/>
-            <circle cx="25" cy="19" r="1.5" fill="#1a1a3a"/>
-            <ellipse cx="22" cy="23" rx="2" ry="1" fill="#C05030"/>
-            <!-- Top -->
-            <rect x="14" y="30" width="16" height="10" rx="2" fill="#c040c0"/>
-            <!-- Arms -->
-            <g class="arm-l"><rect x="7" y="30" width="4" height="10" rx="2" fill="#E06010" transform="rotate(-8 7 30)"/></g>
-            <g class="arm-r"><rect x="33" y="30" width="4" height="10" rx="2" fill="#E06010" transform="rotate(8 37 30)"/></g>
-            <!-- Tail -->
-            <g class="tail"><path d="M14 38 Q4 44 6 54 Q12 52 14 46 Q16 42 14 38Z" fill="#E06010" stroke="#c08040" stroke-width=".5"/></g>
-            <!-- Bottom -->
-            <rect x="16" y="40" width="12" height="12" rx="2" fill="#E06010"/>
-            <!-- Legs -->
-            <g class="leg-l"><rect x="16" y="52" width="5" height="10" rx="2" fill="#E06010" transform="rotate(-3 16 52)"/></g>
-            <g class="leg-r"><rect x="23" y="52" width="5" height="10" rx="2" fill="#E06010" transform="rotate(3 28 52)"/></g>
-          </svg>
-          <div class="char-shadow" style="width:24px"></div>
-        </div>
+              <!-- Sonia (blue hedgehog girl) -->
+              <div class="char-slot m-idle" id="cSonia">
+                <svg width="54" height="84" viewBox="0 0 54 84">
+                  <path d="M8 20 L0 8 L14 18" fill="#1050c0"/><path d="M46 20 L54 8 L40 18" fill="#1050c0"/>
+                  <g class="a-head"><ellipse cx="27" cy="22" rx="14" ry="15" fill="#1050c0"/><ellipse cx="27" cy="27" rx="9" ry="8" fill="#f4c090"/><ellipse cx="22" cy="22" rx="4" ry="4.5" fill="#fff"/><ellipse cx="22" cy="22" rx="2.5" ry="3" fill="#1050c0"/><circle cx="21" cy="21" r="1" fill="#111"/><ellipse cx="32" cy="22" rx="4" ry="4.5" fill="#fff"/><ellipse cx="32" cy="22" rx="2.5" ry="3" fill="#1050c0"/><circle cx="31" cy="21" r="1" fill="#111"/><ellipse cx="27" cy="28" rx="2" ry="1.2" fill="#c05040"/><path d="M18 19 L16 17M20 18 L19 16" stroke="#111" stroke-width=".8" stroke-linecap="round"/><path d="M36 19 L38 17M34 18 L35 16" stroke="#111" stroke-width=".8" stroke-linecap="round"/></g>
+                  <rect x="18" y="37" width="18" height="12" rx="3" fill="#1050c0"/><rect x="23" y="37" width="8" height="12" rx="1" fill="#f4c090"/>
+                  <g class="a-arm-l"><rect x="7" y="37" width="9" height="16" rx="4" fill="#1050c0" transform="rotate(-10 7 37)"/><ellipse cx="11" cy="53" rx="4" ry="4" fill="#fff"/></g>
+                  <g class="a-arm-r"><rect x="38" y="37" width="9" height="16" rx="4" fill="#1050c0" transform="rotate(10 47 37)"/><ellipse cx="43" cy="53" rx="4" ry="4" fill="#fff"/></g>
+                  <path d="M16 49 Q18 60 27 60 Q36 60 38 49Z" fill="#d03030"/>
+                  <g class="a-leg-l"><rect x="19" y="60" width="7" height="15" rx="3" fill="#f4c090" transform="rotate(-4 19 60)"/></g><g class="a-leg-r"><rect x="28" y="60" width="7" height="15" rx="3" fill="#f4c090" transform="rotate(4 35 60)"/></g>
+                  <ellipse cx="23" cy="76" rx="6" ry="4" fill="#d03030"/><rect x="17" y="72" width="12" height="5" rx="2" fill="#d03030"/>
+                  <ellipse cx="31" cy="76" rx="6" ry="4" fill="#d03030"/><rect x="27" y="72" width="12" height="5" rx="2" fill="#d03030"/>
+                </svg>
+              </div>
 
-        <!-- SPYRA (fem Spyro) — purple dragon girl, pink wings, golden horns -->
-        <div class="char move-idle" id="charSpyra">
-          <svg width="68" height="88" viewBox="0 0 68 88" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <!-- Wings -->
-            <path d="M10 30 Q-4 18 2 36 Q8 40 16 38" fill="#c060c0" opacity=".8"/>
-            <path d="M58 30 Q72 18 66 36 Q60 40 52 38" fill="#c060c0" opacity=".8"/>
-            <!-- Horns -->
-            <path d="M26 12 L22 2 L28 10" fill="#FFD700"/>
-            <path d="M42 12 L46 2 L40 10" fill="#FFD700"/>
-            <!-- Head -->
-            <g class="head">
-              <ellipse cx="34" cy="22" rx="14" ry="13" fill="#9040c0"/>
-              <!-- Snout -->
-              <ellipse cx="34" cy="28" rx="8" ry="5" fill="#c080e0"/>
-              <circle cx="30" cy="20" r="2" fill="#FFD700"/>
-              <circle cx="38" cy="20" r="2" fill="#FFD700"/>
-              <!-- Nostrils -->
-              <circle cx="32" cy="29" r="1" fill="#7030a0"/>
-              <circle cx="36" cy="29" r="1" fill="#7030a0"/>
-            </g>
-            <!-- Body -->
-            <ellipse cx="34" cy="52" rx="13" ry="16" fill="#9040c0"/>
-            <!-- Belly -->
-            <ellipse cx="34" cy="52" rx="8" ry="11" fill="#c080e0"/>
-            <!-- Arms -->
-            <g class="arm-l"><rect x="14" y="42" width="8" height="16" rx="4" fill="#9040c0" transform="rotate(-15 14 42)"/></g>
-            <g class="arm-r"><rect x="46" y="42" width="8" height="16" rx="4" fill="#9040c0" transform="rotate(15 54 42)"/></g>
-            <!-- Skirt -->
-            <g class="skirt"><path d="M22 64 Q24 76 34 76 Q44 76 46 64Z" fill="#7030a0"/></g>
-            <!-- Tail -->
-            <g class="tail"><path d="M44 62 Q58 70 56 80 Q50 76 46 70 Q44 66 44 62Z" fill="#9040c0"/><path d="M54 80 L60 78 L58 84Z" fill="#FFD700"/></g>
-            <!-- Legs -->
-            <g class="leg-l"><rect x="24" y="76" width="7" height="10" rx="3" fill="#9040c0" transform="rotate(-4 24 76)"/></g>
-            <g class="leg-r"><rect x="37" y="76" width="7" height="10" rx="3" fill="#9040c0" transform="rotate(4 44 76)"/></g>
-          </svg>
-          <div class="char-shadow"></div>
-        </div>
+              <!-- Marie (red-cap girl) -->
+              <div class="char-slot m-idle" id="cMarie">
+                <svg width="54" height="86" viewBox="0 0 54 86">
+                  <ellipse cx="27" cy="13" rx="17" ry="7" fill="#cc1010"/><rect x="10" y="13" width="34" height="5" rx="2" fill="#cc1010"/>
+                  <path d="M22 11 L24 7 L27 11 L30 7 L33 11 L36 11 L36 15 L22 15Z" fill="#fff" opacity=".9"/>
+                  <path d="M10 22 Q3 30 7 40 Q11 36 13 28 Q13 24 10 22" fill="#3a1508"/><path d="M44 22 Q51 30 47 40 Q43 36 41 28 Q41 24 44 22" fill="#3a1508"/>
+                  <g class="a-head"><ellipse cx="27" cy="24" rx="13" ry="13" fill="#f4c090"/><circle cx="23" cy="22" r="2" fill="#2a1a0a"/><circle cx="31" cy="22" r="2" fill="#2a1a0a"/><ellipse cx="21" cy="26" rx="3" ry="2" fill="#f090a0" opacity=".6"/><ellipse cx="33" cy="26" rx="3" ry="2" fill="#f090a0" opacity=".6"/><path d="M24 28 Q27 31 30 28" stroke="#c06040" stroke-width="1.2" fill="none" stroke-linecap="round"/><ellipse cx="27" cy="23" rx="2.5" ry="1.5" fill="#c05040"/></g>
+                  <rect x="18" y="37" width="18" height="14" rx="3" fill="#3860c0"/><rect x="21" y="33" width="5" height="6" rx="1" fill="#3860c0"/><rect x="28" y="33" width="5" height="6" rx="1" fill="#3860c0"/>
+                  <g class="a-arm-l"><rect x="7" y="37" width="9" height="14" rx="4" fill="#cc1010" transform="rotate(-8 7 37)"/><ellipse cx="11" cy="52" rx="4" ry="4" fill="#f4c090"/></g>
+                  <g class="a-arm-r"><rect x="38" y="37" width="9" height="14" rx="4" fill="#cc1010" transform="rotate(8 47 37)"/><ellipse cx="43" cy="52" rx="4" ry="4" fill="#f4c090"/></g>
+                  <g class="a-leg-l"><rect x="17" y="51" width="9" height="22" rx="4" fill="#3860c0" transform="rotate(-4 17 51)"/></g><g class="a-leg-r"><rect x="28" y="51" width="9" height="22" rx="4" fill="#3860c0" transform="rotate(4 37 51)"/></g>
+                  <ellipse cx="21" cy="74" rx="7" ry="4" fill="#4a1808"/><ellipse cx="33" cy="74" rx="7" ry="4" fill="#4a1808"/>
+                </svg>
+              </div>
 
-        <!-- CRASHINA (fem Crash) — orange bandicoot girl, wild hair, denim shorts -->
-        <div class="char move-idle" id="charCrashina">
-          <svg width="60" height="88" viewBox="0 0 60 88" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <!-- Wild hair -->
-            <path d="M14 18 Q10 6 16 4 Q22 2 24 12" fill="#D86018"/>
-            <path d="M46 18 Q50 6 44 4 Q38 2 36 12" fill="#D86018"/>
-            <path d="M20 14 Q18 4 26 2 Q32 4 30 14" fill="#D86018"/>
-            <path d="M40 14 Q42 4 34 2 Q28 4 30 14" fill="#D86018"/>
-            <!-- Head -->
-            <g class="head"><ellipse cx="30" cy="22" rx="14" ry="14" fill="#D86018"/>
-            <!-- Big muzzle -->
-            <ellipse cx="30" cy="28" rx="10" ry="7" fill="#F4A868"/>
-            <circle cx="25" cy="20" r="2.5" fill="#111"/>
-            <circle cx="35" cy="20" r="2.5" fill="#111"/>
-            <path d="M26 28 Q30 32 34 28" stroke="#a04010" stroke-width="1.2" fill="none" stroke-linecap="round"/>
-            <!-- Nose -->
-            <ellipse cx="30" cy="25" rx="3" ry="2" fill="#a04010"/>
-            </g>
-            <!-- Body / overalls -->
-            <rect x="18" y="36" width="24" height="20" rx="3" fill="#4080D0"/>
-            <!-- Straps -->
-            <rect x="22" y="32" width="4" height="8" rx="1" fill="#4080D0"/>
-            <rect x="34" y="32" width="4" height="8" rx="1" fill="#4080D0"/>
-            <!-- Arms -->
-            <g class="arm-l"><rect x="8" y="36" width="8" height="18" rx="4" fill="#D86018" transform="rotate(-12 8 36)"/></g>
-            <g class="arm-r"><rect x="44" y="36" width="8" height="18" rx="4" fill="#D86018" transform="rotate(12 52 36)"/></g>
-            <!-- Legs -->
-            <g class="leg-l"><rect x="19" y="56" width="8" height="18" rx="4" fill="#D86018" transform="rotate(-5 19 56)"/></g>
-            <g class="leg-r"><rect x="33" y="56" width="8" height="18" rx="4" fill="#D86018" transform="rotate(5 41 56)"/></g>
-            <!-- Shoes -->
-            <ellipse cx="23" cy="74" rx="7" ry="4" fill="#1a1a1a"/>
-            <ellipse cx="37" cy="74" rx="7" ry="4" fill="#1a1a1a"/>
-          </svg>
-          <div class="char-shadow"></div>
-        </div>
+              <!-- Tinette (copper-bob girl) + Milou (white dog) -->
+              <div class="char-slot m-idle" id="cTinette" style="flex-direction:row;align-items:flex-end;gap:4px">
+                <svg width="50" height="86" viewBox="0 0 50 86">
+                  <ellipse cx="25" cy="15" rx="13" ry="11" fill="#c06820"/>
+                  <rect x="12" y="15" width="26" height="8" rx="0" fill="#c06820"/>
+                  <path d="M12 15 Q11 24 13 30" stroke="#c06820" stroke-width="4" fill="none" stroke-linecap="round"/>
+                  <path d="M38 15 Q39 24 37 30" stroke="#c06820" stroke-width="4" fill="none" stroke-linecap="round"/>
+                  <g class="a-head"><ellipse cx="25" cy="23" rx="11" ry="11" fill="#f4d4a0"/><circle cx="21" cy="21" r="1.8" fill="#111"/><circle cx="29" cy="21" r="1.8" fill="#111"/><circle cx="25" cy="25" r="1.2" fill="#c07050"/><path d="M22 28 Q25 31 28 28" stroke="#c07050" stroke-width="1" fill="none" stroke-linecap="round"/><circle cx="21" cy="27" r=".8" fill="#c09060" opacity=".6"/><circle cx="29" cy="27" r=".8" fill="#c09060" opacity=".6"/></g>
+                  <rect x="15" y="34" width="20" height="14" rx="3" fill="#d03030"/>
+                  <circle cx="20" cy="38" r="1.5" fill="#fff"/><circle cx="26" cy="41" r="1.5" fill="#fff"/><circle cx="32" cy="38" r="1.5" fill="#fff"/>
+                  <path d="M15 34 L25 40 L35 34" stroke="#fff" stroke-width="1.5" fill="none"/>
+                  <g class="a-arm-l"><rect x="5" y="34" width="8" height="16" rx="4" fill="#f4d4a0" transform="rotate(-10 5 34)"/></g>
+                  <g class="a-arm-r"><rect x="37" y="34" width="8" height="16" rx="4" fill="#f4d4a0" transform="rotate(10 45 34)"/></g>
+                  <rect x="14" y="48" width="22" height="16" rx="3" fill="#181e60"/>
+                  <rect x="14" y="48" width="22" height="3" rx="1" fill="#7b3f00"/>
+                  <rect x="22" y="47" width="6" height="5" rx="1" fill="#daa520"/>
+                  <g class="a-leg-l"><rect x="15" y="64" width="8" height="16" rx="4" fill="#181e60" transform="rotate(-3 15 64)"/></g><g class="a-leg-r"><rect x="27" y="64" width="8" height="16" rx="4" fill="#181e60" transform="rotate(3 35 64)"/></g>
+                  <ellipse cx="19" cy="81" rx="6" ry="3.5" fill="#111"/><ellipse cx="31" cy="81" rx="6" ry="3.5" fill="#111"/>
+                </svg>
+                <!-- Milou -->
+                <svg width="34" height="42" viewBox="0 0 34 42">
+                  <g class="a-tail"><path d="M28 18 Q36 12 34 6 Q30 8 28 14" fill="#f0f0f0" stroke="#ddd" stroke-width=".5"/></g>
+                  <ellipse cx="18" cy="26" rx="12" ry="9" fill="#f0f0f0" stroke="#e0e0e0" stroke-width=".5"/>
+                  <g class="a-head"><ellipse cx="8" cy="18" rx="9" ry="9" fill="#f0f0f0" stroke="#e0e0e0" stroke-width=".5"/><ellipse cx="3" cy="21" rx="4" ry="3" fill="#f8f8f8"/><circle cx="3" cy="20" r="1.2" fill="#111"/><circle cx="7" cy="17" r="2" fill="#111"/><circle cx="7.7" cy="16.3" r=".6" fill="#fff"/>
+                  <path d="M10 11 Q12 8 14 11 Q12 12 10 11Z" fill="#ff80b0"/><path d="M14 11 Q16 8 18 11 Q16 12 14 11Z" fill="#ff80b0"/><circle cx="14" cy="11" r="1.5" fill="#ff1493"/></g>
+                  <rect x="10" y="32" width="4" height="8" rx="2" fill="#f0f0f0"/><rect x="16" y="32" width="4" height="8" rx="2" fill="#f0f0f0"/><rect x="22" y="32" width="4" height="8" rx="2" fill="#f0f0f0"/>
+                </svg>
+              </div>
 
-        <!-- SONIA (fem Sonic) — blue hedgehog girl, long quills, red boots -->
-        <div class="char move-idle" id="charSonia">
-          <svg width="58" height="90" viewBox="0 0 58 90" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <!-- Long back quills -->
-            <path d="M10 20 L2 8 L16 18" fill="#2060D0"/>
-            <path d="M12 26 L0 20 L14 26" fill="#2060D0"/>
-            <path d="M48 20 L56 8 L42 18" fill="#2060D0"/>
-            <!-- Head -->
-            <g class="head">
-              <ellipse cx="29" cy="22" rx="15" ry="16" fill="#2060D0"/>
-              <!-- Peach face -->
-              <ellipse cx="29" cy="26" rx="9" ry="8" fill="#F4C090"/>
-              <!-- Eyes — large -->
-              <ellipse cx="25" cy="23" rx="4" ry="4.5" fill="#fff"/>
-              <ellipse cx="25" cy="23" rx="2.5" ry="3" fill="#2060D0"/>
-              <circle cx="24" cy="22" r="1" fill="#111"/>
-              <ellipse cx="33" cy="23" rx="4" ry="4.5" fill="#fff"/>
-              <ellipse cx="33" cy="23" rx="2.5" ry="3" fill="#2060D0"/>
-              <circle cx="32" cy="22" r="1" fill="#111"/>
-              <!-- Nose -->
-              <ellipse cx="29" cy="27" rx="2" ry="1.2" fill="#c05040"/>
-              <!-- Eyelashes -->
-              <path d="M21 20 L19 18M23 19 L22 17" stroke="#111" stroke-width=".8" stroke-linecap="round"/>
-              <path d="M37 20 L39 18M35 19 L36 17" stroke="#111" stroke-width=".8" stroke-linecap="round"/>
-            </g>
-            <!-- Crop jacket -->
-            <rect x="19" y="38" width="20" height="12" rx="3" fill="#2060D0"/>
-            <rect x="25" y="38" width="8" height="12" rx="1" fill="#F4C090"/>
-            <!-- Arms -->
-            <g class="arm-l"><rect x="9" y="38" width="8" height="16" rx="4" fill="#2060D0" transform="rotate(-10 9 38)"/><ellipse cx="13" cy="54" rx="4" ry="4" fill="#fff"/></g>
-            <g class="arm-r"><rect x="41" y="38" width="8" height="16" rx="4" fill="#2060D0" transform="rotate(10 49 38)"/><ellipse cx="45" cy="54" rx="4" ry="4" fill="#fff"/></g>
-            <!-- Skirt / shorts -->
-            <g class="skirt"><path d="M18 50 Q20 62 29 62 Q38 62 40 50Z" fill="#E04040"/></g>
-            <!-- Legs -->
-            <g class="leg-l"><rect x="21" y="62" width="6" height="16" rx="3" fill="#F4C090" transform="rotate(-4 21 62)"/></g>
-            <g class="leg-r"><rect x="31" y="62" width="6" height="16" rx="3" fill="#F4C090" transform="rotate(4 37 62)"/></g>
-            <!-- Red boots -->
-            <ellipse cx="24" cy="79" rx="6" ry="4" fill="#E04040"/>
-            <ellipse cx="34" cy="79" rx="6" ry="4" fill="#E04040"/>
-            <rect x="18" y="75" width="12" height="5" rx="2" fill="#E04040"/>
-            <rect x="28" y="75" width="12" height="5" rx="2" fill="#E04040"/>
-          </svg>
-          <div class="char-shadow"></div>
-        </div>
-
-        <!-- MARIE (fem Mario) — red cap, dark braids, blue dungarees -->
-        <div class="char move-idle" id="charMarie">
-          <svg width="58" height="90" viewBox="0 0 58 90" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <!-- Cap -->
-            <ellipse cx="29" cy="14" rx="18" ry="8" fill="#E02020"/>
-            <rect x="11" y="14" width="36" height="5" rx="2" fill="#E02020"/>
-            <!-- M on cap -->
-            <path d="M22 12 L24 8 L27 12 L30 8 L33 12 L36 12 L36 16 L22 16Z" fill="#fff" opacity=".9"/>
-            <!-- Braids -->
-            <path d="M12 22 Q4 30 8 42 Q12 38 14 30 Q14 26 12 22" fill="#4a2010"/>
-            <path d="M46 22 Q54 30 50 42 Q46 38 44 30 Q44 26 46 22" fill="#4a2010"/>
-            <!-- Head -->
-            <g class="head"><ellipse cx="29" cy="24" rx="14" ry="13" fill="#F4C090"/>
-            <circle cx="25" cy="22" r="2" fill="#2a1a0a"/>
-            <circle cx="33" cy="22" r="2" fill="#2a1a0a"/>
-            <ellipse cx="23" cy="26" rx="3" ry="2" fill="#F08090" opacity=".6"/>
-            <ellipse cx="35" cy="26" rx="3" ry="2" fill="#F08090" opacity=".6"/>
-            <path d="M26 27 Q29 30 32 27" stroke="#c06040" stroke-width="1.2" fill="none" stroke-linecap="round"/>
-            <ellipse cx="29" cy="23" rx="2.5" ry="1.5" fill="#c05040"/>
-            </g>
-            <!-- Dungaree bib -->
-            <rect x="20" y="37" width="18" height="14" rx="3" fill="#4070D0"/>
-            <rect x="23" y="34" width="5" height="6" rx="1" fill="#4070D0"/>
-            <rect x="30" y="34" width="5" height="6" rx="1" fill="#4070D0"/>
-            <!-- Shirt sleeves -->
-            <rect x="9" y="37" width="9" height="14" rx="4" fill="#E02020" transform="rotate(-8 9 37)"/>
-            <rect x="40" y="37" width="9" height="14" rx="4" fill="#E02020" transform="rotate(8 49 37)"/>
-            <!-- Hands -->
-            <g class="arm-l"><ellipse cx="13" cy="52" rx="4" ry="4" fill="#F4C090"/></g>
-            <g class="arm-r"><ellipse cx="45" cy="52" rx="4" ry="4" fill="#F4C090"/></g>
-            <!-- Dungaree legs -->
-            <g class="leg-l"><rect x="19" y="51" width="9" height="22" rx="4" fill="#4070D0" transform="rotate(-4 19 51)"/></g>
-            <g class="leg-r"><rect x="30" y="51" width="9" height="22" rx="4" fill="#4070D0" transform="rotate(4 39 51)"/></g>
-            <!-- Brown boots -->
-            <ellipse cx="23" cy="74" rx="7" ry="4" fill="#5a2010"/>
-            <ellipse cx="35" cy="74" rx="7" ry="4" fill="#5a2010"/>
-          </svg>
-          <div class="char-shadow"></div>
-        </div>
-
-        <!-- TINETTE (fem Tintin) — copper bob, red-white polka dot top, Snowy is her dog -->
-        <div class="char move-idle" id="charTinette">
-          <svg width="54" height="90" viewBox="0 0 54 90" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <!-- Hair — copper bob -->
-            <ellipse cx="27" cy="16" rx="14" ry="12" fill="#D07030"/>
-            <rect x="13" y="16" width="28" height="8" rx="0" fill="#D07030"/>
-            <path d="M13 16 Q12 26 14 32" stroke="#D07030" stroke-width="4" fill="none" stroke-linecap="round"/>
-            <path d="M41 16 Q42 26 40 32" stroke="#D07030" stroke-width="4" fill="none" stroke-linecap="round"/>
-            <!-- Face -->
-            <g class="head"><ellipse cx="27" cy="24" rx="11" ry="12" fill="#F4D4A0"/>
-            <circle cx="23" cy="22" r="1.8" fill="#111"/>
-            <circle cx="31" cy="22" r="1.8" fill="#111"/>
-            <!-- Simple dot nose -->
-            <circle cx="27" cy="26" r="1.2" fill="#c07050"/>
-            <path d="M24 29 Q27 32 30 29" stroke="#c07050" stroke-width="1" fill="none" stroke-linecap="round"/>
-            <!-- Freckles -->
-            <circle cx="22" cy="27" r=".8" fill="#c09060" opacity=".6"/>
-            <circle cx="32" cy="27" r=".8" fill="#c09060" opacity=".6"/>
-            </g>
-            <!-- Polka dot top -->
-            <rect x="17" y="36" width="20" height="14" rx="3" fill="#E04040"/>
-            <circle cx="22" cy="40" r="1.5" fill="#fff"/>
-            <circle cx="28" cy="43" r="1.5" fill="#fff"/>
-            <circle cx="34" cy="40" r="1.5" fill="#fff"/>
-            <circle cx="22" cy="47" r="1.5" fill="#fff"/>
-            <circle cx="34" cy="47" r="1.5" fill="#fff"/>
-            <!-- Collar -->
-            <path d="M17 36 L27 42 L37 36" stroke="#fff" stroke-width="1.5" fill="none"/>
-            <!-- Arms -->
-            <g class="arm-l"><rect x="7" y="36" width="8" height="16" rx="4" fill="#F4D4A0" transform="rotate(-10 7 36)"/></g>
-            <g class="arm-r"><rect x="39" y="36" width="8" height="16" rx="4" fill="#F4D4A0" transform="rotate(10 47 36)"/></g>
-            <!-- Trousers — dark blue -->
-            <rect x="16" y="50" width="22" height="16" rx="3" fill="#1a2060"/>
-            <!-- Belt -->
-            <rect x="16" y="50" width="22" height="3" rx="1" fill="#8B4513"/>
-            <rect x="25" y="49" width="4" height="5" rx="1" fill="#DAA520"/>
-            <!-- Legs -->
-            <g class="leg-l"><rect x="17" y="66" width="8" height="16" rx="4" fill="#1a2060" transform="rotate(-3 17 66)"/></g>
-            <g class="leg-r"><rect x="29" y="66" width="8" height="16" rx="4" fill="#1a2060" transform="rotate(3 37 66)"/></g>
-            <!-- Shoes -->
-            <ellipse cx="21" cy="82" rx="6" ry="3.5" fill="#1a1a1a"/>
-            <ellipse cx="33" cy="82" rx="6" ry="3.5" fill="#1a1a1a"/>
-          </svg>
-          <div class="char-shadow"></div>
-        </div>
-
-        <!-- MILOU (Snowy — female white terrier with bow) -->
-        <div id="dogChar">
-          <svg width="36" height="44" viewBox="0 0 36 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <!-- Tail -->
-            <g class="tail"><path d="M30 20 Q38 14 36 8 Q32 10 30 16" fill="#f0f0f0" stroke="#ccc" stroke-width=".5"/></g>
-            <!-- Body -->
-            <ellipse cx="20" cy="28" rx="12" ry="9" fill="#f0f0f0" stroke="#ddd" stroke-width=".5"/>
-            <!-- Head -->
-            <g class="head"><ellipse cx="10" cy="20" rx="9" ry="9" fill="#f0f0f0" stroke="#ddd" stroke-width=".5"/>
-            <!-- Snout -->
-            <ellipse cx="5" cy="22" rx="4" ry="3" fill="#f8f8f8"/>
-            <circle cx="4" cy="21" r="1.2" fill="#111"/>
-            <!-- Bow on head -->
-            <path d="M12 13 Q14 10 16 13 Q14 14 12 13Z" fill="#FF69B4"/>
-            <path d="M16 13 Q18 10 20 13 Q18 14 16 13Z" fill="#FF69B4"/>
-            <circle cx="16" cy="13" r="1.5" fill="#FF1493"/>
-            <!-- Eye -->
-            <circle cx="8" cy="19" r="2" fill="#111"/>
-            <circle cx="8.6" cy="18.4" r=".6" fill="#fff"/>
-            </g>
-            <!-- Legs -->
-            <rect x="12" y="34" width="4" height="8" rx="2" fill="#f0f0f0"/>
-            <rect x="18" y="34" width="4" height="8" rx="2" fill="#f0f0f0"/>
-            <rect x="24" y="34" width="4" height="8" rx="2" fill="#f0f0f0"/>
-          </svg>
-          <div class="char-shadow" style="width:30px"></div>
-        </div>
-
-      </div>
-      <!-- /CHARACTER STAGE -->
-
-      <!-- Waveform -->
-      <div id="wvWrap" onclick="wvSeek(event)" style="flex-shrink:0;padding:16px 20px 8px;cursor:pointer">
-        <canvas id="wvCvs"></canvas>
-      </div>
-
-      <!-- Progress -->
-      <div id="progWrap" style="flex-shrink:0;padding:0 20px 12px">
-        <div id="progRail" ontouchstart="seekT(event)" ontouchmove="seekT(event)" onclick="seekC(event)">
-          <div id="progTrack">
-            <div id="progFill" style="width:0%"><div id="progHead"></div></div>
+            </div>
           </div>
         </div>
-        <div class="times"><span id="tNow">0:00</span><span id="tTot">0:00</span></div>
-      </div>
 
-      <!-- Controls -->
-      <div id="ctrlRow" style="padding:0 20px 16px">
-        <button class="ctrl" id="ctrlShuffle" onclick="togShuffle()">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5M4 20l16-16M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>
-        </button>
-        <button class="ctrl" onclick="prevTrk()" style="width:52px;height:52px">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
-        </button>
-        <button id="playBtn" onclick="togglePlay()">
-          <svg id="playIco" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>
-        </button>
-        <button class="ctrl" onclick="nextTrk()" style="width:52px;height:52px">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
-        </button>
-        <button class="ctrl" id="ctrlRepeat" onclick="togRepeat()">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 014-4h14M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>
-        </button>
-      </div>
-
-      <!-- Volume -->
-      <div id="volWrap" style="padding:0 20px 20px">
-        <div class="vico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/></svg></div>
-        <input type="range" id="volSl" min="0" max="100" value="85" oninput="setVol(this.value)">
-        <div class="vico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 010 7.07M19.07 4.93a10 10 0 010 14.14"/></svg></div>
-        <span class="vval" id="vv">85</span>
-      </div>
-    </div>
-
-    <!-- LIBRARY -->
-    <div class="page" id="pgLib">
-      <div id="libHdr">
-        <div class="lib-wordmark">LIBRARY</div>
-        <button class="add-btn" onclick="togAddMenu()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          ADD
-        </button>
-      </div>
-
-      <div id="addMenu">
-        <div style="height:8px"></div>
-        <button class="add-option" onclick="pickFiles()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-          <div>
-            <div class="add-opt-label">Pick audio files</div>
-            <div class="add-opt-sub">MP3 · FLAC · WAV · AAC · M4A</div>
+        <!-- TRACK INFO -->
+        <div id="trackInfo">
+          <div class="now-meta">
+            <div class="now-meta-dot" id="nowDot"></div>
+            <span id="nowStatus">NO TRACK</span>
           </div>
-        </button>
-        <button class="add-option" onclick="pickFolder()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
-          <div>
-            <div class="add-opt-label">Pick entire folder</div>
-            <div class="add-opt-sub">Or your NAS drive</div>
+          <div id="tTitle">Select a track to play</div>
+          <div id="tArtist">Go to Library and add your music</div>
+          <div class="t-chips" id="tChips"></div>
+        </div>
+
+        <!-- WAVEFORM -->
+        <div id="wvSection" onclick="wvSeek(event)" ontouchstart="wvTouch(event)" ontouchmove="wvTouch(event)">
+          <canvas id="wvCvs"></canvas>
+        </div>
+
+        <!-- PROGRESS -->
+        <div id="progSection">
+          <div id="progRail" ontouchstart="seekT(event)" ontouchmove="seekT(event)" onclick="seekC(event)">
+            <div id="progTrack">
+              <div id="progFill" style="width:0%"><div id="progHead"></div></div>
+            </div>
           </div>
-        </button>
+          <div class="prog-times"><span id="tNow">0:00</span><span id="tTot">0:00</span></div>
+        </div>
+
+        <!-- CONTROLS -->
+        <div id="ctrlSection">
+          <div id="ctrlRow">
+            <button class="ctrl" id="ctrlShuffle" onclick="togShuffle()" title="Shuffle">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5M4 20l16-16M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>
+            </button>
+            <button class="ctrl" onclick="prevTrk()" style="width:50px;height:50px">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+            </button>
+            <button id="playBtn" onclick="togglePlay()">
+              <svg id="playIco" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>
+            </button>
+            <button class="ctrl" onclick="nextTrk()" style="width:50px;height:50px">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+            </button>
+            <button class="ctrl" id="ctrlRepeat" onclick="togRepeat()" title="Repeat">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 014-4h14M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- VOL -->
+        <div id="volRow">
+          <div class="vi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/></svg></div>
+          <input type="range" id="volSl" min="0" max="100" value="80" oninput="setVol(this.value)">
+          <div class="vi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 010 7.07M19.07 4.93a10 10 0 010 14.14"/></svg></div>
+          <span class="vval" id="vv">80</span>
+        </div>
+
+      </div><!-- /pgNow -->
+
+      <!-- LIBRARY -->
+      <div class="page" id="pgLib">
+        <div id="libHead">
+          <div class="lib-title">Library</div>
+          <div id="libStats">0 tracks</div>
+        </div>
+        <div id="addRow">
+          <button class="add-btn-main" onclick="document.getElementById('fpAudio').click()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+            Add Files
+          </button>
+          <button class="add-btn-main" onclick="document.getElementById('fpFolder').click()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+            Add Folder
+          </button>
+        </div>
+        <div id="srchWrap">
+          <div class="srch-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></div>
+          <input id="srch" placeholder="Search tracks, artists, albums…" oninput="renderLib(this.value)">
+        </div>
+        <div id="trkScroll"><div id="trkList"></div></div>
       </div>
 
-      <div id="srchWrap">
-        <div class="srch-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></div>
-        <input id="srch" placeholder="Search tracks, artists…" oninput="renderLib(this.value)">
+      <!-- PLAYLISTS -->
+      <div class="page" id="pgPlaylists">
+        <div id="plHead">
+          <div class="pl-title">Playlists</div>
+          <button class="ico-btn" onclick="openNewPl()" title="New playlist">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+        </div>
+        <div id="plScroll">
+          <div id="plList">
+            <div id="newPlCard" onclick="openNewPl()">
+              <div class="new-pl-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+              <div><div class="new-pl-label">New Playlist</div><div class="new-pl-sub">Create a new collection</div></div>
+            </div>
+          </div>
+        </div>
+        <!-- Playlist detail -->
+        <div id="plDetail">
+          <div id="plDetailHead">
+            <button class="back-btn" onclick="closePlDetail()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+              Back
+            </button>
+            <div class="pl-detail-name" id="plDetailName">Playlist</div>
+            <button class="ico-btn" onclick="deletePl(currentPlId)" title="Delete playlist" style="color:#ff6b6b;border-color:rgba(255,107,107,.2)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
+            </button>
+          </div>
+          <div id="plDetailScroll">
+            <div class="pl-detail-actions">
+              <button class="pla-btn pla-play" onclick="playPlaylist(currentPlId,false)">
+                <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>
+                Play
+              </button>
+              <button class="pla-btn pla-shuf" onclick="playPlaylist(currentPlId,true)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5M4 20l16-16M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>
+                Shuffle
+              </button>
+            </div>
+            <div id="plDetailList"></div>
+          </div>
+        </div>
       </div>
 
-      <div id="trkScroll">
-        <div id="trkList"></div>
+    </div><!-- /pages -->
+
+    <!-- MINI PLAYER -->
+    <div id="mini" onclick="goTab(0)">
+      <img class="mp-art" id="mpArt" src="" alt="">
+      <div class="mp-info"><div class="mp-t" id="mpT">—</div><div class="mp-a" id="mpA">—</div></div>
+      <div class="mp-ctrls">
+        <button class="mp-btn" onclick="event.stopPropagation();prevTrk()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
+        <button class="mp-btn" onclick="event.stopPropagation();togglePlay()"><svg id="mpIco" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg></button>
+        <button class="mp-btn" onclick="event.stopPropagation();nextTrk()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg></button>
+      </div>
+      <div class="mp-prog"><div class="mp-fill" id="mpFill" style="width:0%"></div></div>
+    </div>
+
+    <!-- NAV -->
+    <div id="nav">
+      <button class="nav-btn on" id="nav0" onclick="goTab(0)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>
+        Now
+      </button>
+      <button class="nav-btn" id="nav1" onclick="goTab(1)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        Library
+      </button>
+      <button class="nav-btn" id="nav2" onclick="goTab(2)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/><path d="M9 9l12-2"/></svg>
+        Playlists
+      </button>
+    </div>
+
+    <!-- OVERLAYS (all inside #content, pointer-events:none when not active) -->
+    <!-- Add to playlist picker -->
+    <div id="plPicker" onclick="if(event.target===this)closePlPicker()">
+      <div id="plPickerCard">
+        <div class="picker-title">Add to Playlist</div>
+        <div class="picker-trk" id="pickerTrkName">—</div>
+        <div id="pickerPlList"></div>
+        <div class="picker-close" onclick="closePlPicker()">CANCEL</div>
       </div>
     </div>
 
-  </div><!-- /pages -->
-
-  <!-- MINI PLAYER -->
-  <div id="mini" class="hidden" onclick="goTab('Now',0)">
-    <img class="mp-art" id="mpArt" src="" alt="">
-    <div class="mp-info">
-      <div class="mp-t" id="mpT">—</div>
-      <div class="mp-a" id="mpA">—</div>
+    <!-- New playlist modal -->
+    <div id="plModal" onclick="if(event.target===this)closePlModal()">
+      <div class="pl-modal-card">
+        <div class="pl-modal-title">New Playlist</div>
+        <input class="pl-modal-input" id="plNameIn" placeholder="Playlist name…" maxlength="40">
+        <div class="pl-modal-btns">
+          <button class="pm-cancel" onclick="closePlModal()">Cancel</button>
+          <button class="pm-create" onclick="createPl()">Create</button>
+        </div>
+      </div>
     </div>
-    <div class="mp-ctrls">
-      <button class="mp-btn" onclick="event.stopPropagation();prevTrk()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
-      <button class="mp-btn" onclick="event.stopPropagation();togglePlay()"><svg id="mpIco" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg></button>
-      <button class="mp-btn" onclick="event.stopPropagation();nextTrk()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg></button>
-    </div>
-    <div class="mp-prog"><div class="mp-fill" id="mpFill" style="width:0%"></div></div>
-  </div>
 
-  <!-- NAV -->
-  <div id="nav">
-    <div class="nav-indicator" id="navInd"></div>
-    <button class="nav-btn on" id="nav0" onclick="goTab('Now',0)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg>
-      Now
-    </button>
-    <button class="nav-btn" id="nav1" onclick="goTab('Lib',1)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-      Library
-    </button>
-  </div>
+    <!-- Context menu -->
+    <div id="ctx" onclick="closeCtx()"></div>
 
-  <!-- TOAST + PROC inside app -->
-  <div id="toast" style="pointer-events:none"></div>
-  <div id="proc" style="pointer-events:none"><div class="spinner"></div><span id="procTxt">Reading...</span></div>
+    <!-- Toast -->
+    <div id="toast" style="pointer-events:none"></div>
 
+  </div><!-- /content -->
 </div><!-- /app -->
 
 <script>
 /* ═══════════════════════════════════════════════════
-   ID3 / METADATA PARSER
+   ID3 PARSER (compact)
 ═══════════════════════════════════════════════════ */
-const MetaParser=(()=>{
+const Meta=(()=>{
   const D=new TextDecoder('utf-8');
-  function u8(b,o){return new Uint8Array(b)[o]}
-  function u32b(b,o){return new DataView(b).getUint32(o,false)}
-  function u32l(b,o){return new DataView(b).getUint32(o,true)}
-  function lat(bytes){return Array.from(bytes).map(b=>String.fromCharCode(b)).join('').replace(/\0/g,'')}
-  function dstr(fd){
-    if(!fd.length)return'';
-    if(fd[0]===3)return D.decode(fd.slice(1)).replace(/\0/g,'').trim();
-    if(fd[0]===1||fd[0]===0xFF){const s=fd[0]===1?fd.slice(1):fd;const u=new Uint16Array(s.buffer,s.byteOffset,Math.floor(s.length/2));return String.fromCharCode(...u).replace(/\0/g,'').trim();}
-    return lat(fd.slice(1)).trim();
-  }
-  function ss(a,b,c,d){return((a&0x7F)<<21)|((b&0x7F)<<14)|((c&0x7F)<<7)|(d&0x7F)}
-  function id3v2(buf){
-    const b=new Uint8Array(buf);
-    if(b[0]!==73||b[1]!==68||b[2]!==51)return null;
-    const ver=b[3],fl=b[5],ts=ss(b[6],b[7],b[8],b[9])+10;
-    let off=10;if(fl&0x40)off+=4+ss(b[10],b[11],b[12],b[13]);
-    const m={};
-    while(off+10<ts&&off+10<buf.byteLength){
-      const id=lat(b.slice(off,off+4));if(!id.trim()||id==='\0\0\0\0')break;
-      const fs=ver>=4?ss(b[off+4],b[off+5],b[off+6],b[off+7]):u32b(buf,off+4);
-      if(fs<=0||off+10+fs>buf.byteLength)break;
-      const fd=new Uint8Array(buf,off+10,fs);
-      if(id==='TIT2')m.title=dstr(fd);
-      else if(id==='TPE1')m.artist=m.artist||dstr(fd);
-      else if(id==='TALB')m.album=dstr(fd);
-      else if(id==='TYER'||id==='TDRC')m.year=dstr(fd).slice(0,4);
-      else if(id==='TCON'){let g=dstr(fd);g=g.replace(/^\((\d+)\)/,(_,n)=>GENRES[+n]||g);m.genre=g;}
-      else if(id==='APIC'&&!m.cover){let i=1;while(i<fd.length&&fd[i]!==0)i++;i++;i++;while(i<fd.length&&fd[i]!==0)i++;i++;m.cover=new Uint8Array(fd.buffer,fd.byteOffset+i,fd.length-i);}
-      off+=10+fs;
-    }
-    return m;
-  }
-  function id3v1(buf){
-    if(buf.byteLength<128)return null;
-    const o=buf.byteLength-128,b=new Uint8Array(buf,o,3);
-    if(b[0]!==84||b[1]!==65||b[2]!==71)return null;
-    const t=(off,l)=>lat(new Uint8Array(buf,o+off,l)).trim();
-    const m={title:t(3,30),artist:t(33,30),album:t(63,30),year:t(93,4)};
-    const g=u8(buf,o+127);if(g<GENRES.length)m.genre=GENRES[g];
-    return m;
-  }
-  function flac(buf){
-    const b=new Uint8Array(buf);
-    if(b[0]!==102||b[1]!==76||b[2]!==97||b[3]!==67)return null;
-    const m={};let off=4;
-    while(off+4<buf.byteLength){
-      const bt=b[off]&0x7F,last=!!(b[off]&0x80),bs=(b[off+1]<<16)|(b[off+2]<<8)|b[off+3];
-      off+=4;
-      if(bt===4){const vl=u32l(buf,off);off+=4+vl;const cnt=u32l(buf,off);off+=4;
-        for(let i=0;i<cnt;i++){const cl=u32l(buf,off);off+=4;const c=D.decode(new Uint8Array(buf,off,cl));off+=cl;const eq=c.indexOf('=');if(eq>0){const k=c.slice(0,eq).toUpperCase(),v=c.slice(eq+1);if(k==='TITLE')m.title=v;if(k==='ARTIST')m.artist=v;if(k==='ALBUM')m.album=v;if(k==='DATE'||k==='YEAR')m.year=v.slice(0,4);if(k==='GENRE')m.genre=v;}}
-      }else if(bt===6&&!m.cover){let po=off;const ml=u32b(buf,po+4);po+=8+ml;const dl=u32b(buf,po);po+=4+dl;po+=16;const dn=u32b(buf,po);po+=4;m.cover=new Uint8Array(buf,po,dn);}
-      off+=bs;if(last)break;
-    }
-    return Object.keys(m).length?m:null;
-  }
-  function m4a(buf){
-    const m={};
-    function ra(buf,off,end){
-      while(off+8<end&&off<buf.byteLength){
-        const sz=u32b(buf,off);if(sz<8)break;
-        const nm=lat(new Uint8Array(buf,off+4,4));
-        const body=off+8,next=off+sz;
-        if(['moov','udta','ilst'].includes(nm))ra(buf,body,next);
-        else if(nm==='meta')ra(buf,body+4,next);
-        else{
-          const MP={'\xa9nam':'title','\xa9ART':'artist','\xa9alb':'album','\xa9day':'year','\xa9gen':'genre'};
-          if(MP[nm]){const v=rd(buf,body,next);if(v&&typeof v==='string')m[MP[nm]]=v;}
-          if(nm==='covr'){const v=rd(buf,body,next);if(v instanceof Uint8Array)m.cover=v;}
-        }
-        off=next;
-      }
-    }
-    function rd(buf,off,end){
-      if(off+8>=end)return null;
-      const sz=u32b(buf,off),tp=lat(new Uint8Array(buf,off+4,4));
-      if(tp!=='data'||sz<16)return null;
-      const dt=u32b(buf,off+8),ct=new Uint8Array(buf,off+16,sz-16);
-      if(dt===1||dt===0)return D.decode(ct).replace(/\0/g,'').trim();
-      if(dt===13||dt===14)return ct;
-      return null;
-    }
-    ra(buf,0,buf.byteLength);
-    return Object.keys(m).length?m:null;
-  }
-  const GENRES=['Blues','Classic Rock','Country','Dance','Disco','Funk','Grunge','Hip-Hop','Jazz','Metal','New Age','Oldies','Other','Pop','R&B','Rap','Reggae','Rock','Techno','Industrial','Alternative','Ska','Death Metal','Pranks','Soundtrack','Euro-Techno','Ambient','Trip-Hop','Vocal','Jazz+Funk','Fusion','Trance','Classical','Instrumental','Acid','House','Game','Sound Clip','Gospel','Noise','AlternRock','Bass','Soul','Punk','Space','Meditative','Instrumental Pop','Instrumental Rock','Ethnic','Gothic','Darkwave','Techno-Industrial','Electronic','Pop-Folk','Eurodance','Dream','Southern Rock','Comedy','Cult','Gangsta','Top 40','Christian Rap','Pop/Funk','Jungle','Native American','Cabaret','New Wave','Psychadelic','Rave','Showtunes','Trailer','Lo-Fi','Tribal','Acid Punk','Acid Jazz','Polka','Retro','Musical','Rock & Roll','Hard Rock'];
+  const lat=b=>Array.from(b).map(c=>String.fromCharCode(c)).join('').replace(/\0/g,'');
+  const u32b=(b,o)=>new DataView(b).getUint32(o,false);
+  const u32l=(b,o)=>new DataView(b).getUint32(o,true);
+  const ss=(a,b,c,d)=>((a&127)<<21)|((b&127)<<14)|((c&127)<<7)|(d&127);
+  function dstr(fd){if(!fd.length)return'';if(fd[0]===3)return D.decode(fd.slice(1)).replace(/\0/g,'').trim();if(fd[0]===1){const u=new Uint16Array(fd.slice(1).buffer);return String.fromCharCode(...u).replace(/\0/g,'').trim();}return lat(fd.slice(1)).trim();}
+  const GENRES=['Blues','Classic Rock','Country','Dance','Disco','Funk','Grunge','Hip-Hop','Jazz','Metal','New Age','Oldies','Other','Pop','R&B','Rap','Reggae','Rock','Techno','Industrial','Alternative','Ska','Death Metal','Pranks','Soundtrack','Euro-Techno','Ambient','Trip-Hop','Vocal','Jazz+Funk','Fusion','Trance','Classical','Instrumental','Acid','House','Game','Sound Clip','Gospel','Noise','AlternRock','Bass','Soul','Punk','Space'];
+  function id3v2(buf){const b=new Uint8Array(buf);if(b[0]!==73||b[1]!==68||b[2]!==51)return null;const ver=b[3],fl=b[5],ts=ss(b[6],b[7],b[8],b[9])+10;let off=10;if(fl&64)off+=4+ss(b[10],b[11],b[12],b[13]);const m={};while(off+10<ts&&off+10<buf.byteLength){const id=lat(b.slice(off,off+4));if(!id.trim()||id==='\0\0\0\0')break;const fs=ver>=4?ss(b[off+4],b[off+5],b[off+6],b[off+7]):u32b(buf,off+4);if(fs<=0||off+10+fs>buf.byteLength)break;const fd=new Uint8Array(buf,off+10,fs);if(id==='TIT2')m.title=dstr(fd);else if(id==='TPE1')m.artist=m.artist||dstr(fd);else if(id==='TALB')m.album=dstr(fd);else if(id==='TYER'||id==='TDRC')m.year=dstr(fd).slice(0,4);else if(id==='TCON'){let g=dstr(fd);g=g.replace(/^\((\d+)\)/,(_,n)=>GENRES[+n]||g);m.genre=g;}else if(id==='APIC'&&!m.cover){let i=1;while(i<fd.length&&fd[i])i++;i++;i++;while(i<fd.length&&fd[i])i++;i++;m.cover=new Uint8Array(fd.buffer,fd.byteOffset+i,fd.length-i);}off+=10+fs;}return m;}
+  function id3v1(buf){if(buf.byteLength<128)return null;const o=buf.byteLength-128,b=new Uint8Array(buf,o,3);if(b[0]!==84||b[1]!==65||b[2]!==71)return null;const t=(off,l)=>lat(new Uint8Array(buf,o+off,l)).trim();const m={title:t(3,30),artist:t(33,30),album:t(63,30),year:t(93,4)};const g=new Uint8Array(buf)[o+127];if(g<GENRES.length)m.genre=GENRES[g];return m;}
+  function flac(buf){const b=new Uint8Array(buf);if(b[0]!==102||b[1]!==76||b[2]!==97||b[3]!==67)return null;const m={};let off=4;while(off+4<buf.byteLength){const bt=b[off]&127,last=!!(b[off]&128),bs=(b[off+1]<<16)|(b[off+2]<<8)|b[off+3];off+=4;if(bt===4){const vl=u32l(buf,off);off+=4+vl;const cnt=u32l(buf,off);off+=4;for(let i=0;i<cnt;i++){const cl=u32l(buf,off);off+=4;const c=D.decode(new Uint8Array(buf,off,cl));off+=cl;const eq=c.indexOf('=');if(eq>0){const k=c.slice(0,eq).toUpperCase(),v=c.slice(eq+1);if(k==='TITLE')m.title=v;if(k==='ARTIST')m.artist=v;if(k==='ALBUM')m.album=v;if(k==='DATE'||k==='YEAR')m.year=v.slice(0,4);if(k==='GENRE')m.genre=v;}}}else if(bt===6&&!m.cover){let po=off;const ml=u32b(buf,po+4);po+=8+ml;const dl=u32b(buf,po);po+=4+dl;po+=16;const dn=u32b(buf,po);po+=4;m.cover=new Uint8Array(buf,po,dn);}off+=bs;if(last)break;}return Object.keys(m).length?m:null;}
+  function m4a(buf){const m={};function ra(buf,off,end){while(off+8<end&&off<buf.byteLength){const sz=u32b(buf,off);if(sz<8)break;const nm=lat(new Uint8Array(buf,off+4,4));const body=off+8,next=off+sz;if(['moov','udta','ilst'].includes(nm))ra(buf,body,next);else if(nm==='meta')ra(buf,body+4,next);else{const MP={'\xa9nam':'title','\xa9ART':'artist','\xa9alb':'album','\xa9day':'year','\xa9gen':'genre'};if(MP[nm]){const v=rd(buf,body,next);if(v&&typeof v==='string')m[MP[nm]]=v;}if(nm==='covr'){const v=rd(buf,body,next);if(v instanceof Uint8Array)m.cover=v;}}off=next;}}function rd(buf,off,end){if(off+8>=end)return null;const sz=u32b(buf,off),tp=lat(new Uint8Array(buf,off+4,4));if(tp!=='data'||sz<16)return null;const dt=u32b(buf,off+8),ct=new Uint8Array(buf,off+16,sz-16);if(dt===1||dt===0)return D.decode(ct).replace(/\0/g,'').trim();if(dt===13||dt===14)return ct;return null;}ra(buf,0,buf.byteLength);return Object.keys(m).length?m:null;}
   async function parse(file){
-    const sl=Math.min(file.size,512*1024);
-    const hb=await file.slice(0,sl).arrayBuffer();
-    const tb=await file.slice(Math.max(0,file.size-256)).arrayBuffer();
-    const n=file.name.toLowerCase();
+    const sl=Math.min(file.size,512*1024),hb=await file.slice(0,sl).arrayBuffer(),tb=await file.slice(Math.max(0,file.size-256)).arrayBuffer(),n=file.name.toLowerCase();
     let meta=null;
     if(n.endsWith('.flac'))meta=flac(hb);
     else if(n.endsWith('.m4a')||n.endsWith('.aac')||n.endsWith('.mp4'))meta=m4a(hb);
     else{meta=id3v2(hb);if(!meta?.title){const v=id3v1(tb);if(v?.title)meta={...meta,...v};}}
     if(!meta)meta={};
-    if(meta.cover instanceof Uint8Array){
-      const blob=new Blob([meta.cover]);
-      meta.coverUrl=await new Promise(r=>{const rd=new FileReader();rd.onload=e=>r(e.target.result);rd.readAsDataURL(blob);});
-      delete meta.cover;
-    }
+    if(meta.cover instanceof Uint8Array){const bl=new Blob([meta.cover]);meta.coverUrl=await new Promise(r=>{const rd=new FileReader();rd.onload=e=>r(e.target.result);rd.readAsDataURL(bl);});delete meta.cover;}
     if(!meta.title)meta.title=file.name.replace(/\.[^.]+$/,'').replace(/[-_]/g,' ').replace(/^\d+[\s.-]+/,'').replace(/\b\w/g,c=>c.toUpperCase()).trim();
     if(!meta.artist)meta.artist='Unknown Artist';
     meta.album=meta.album||'';meta.genre=meta.genre||'';meta.year=meta.year||'';
@@ -1174,179 +910,120 @@ const MetaParser=(()=>{
 /* ═══════════════════════════════════════════════════
    STATE
 ═══════════════════════════════════════════════════ */
-const ST={idx:-1,playing:false,shuffle:false,repeat:false,vol:.85,liked:new Set()};
+const ST={idx:-1,playing:false,shuffle:false,repeat:false,vol:.8,liked:new Set(),queue:[]};
 let LIBRARY=[];
-function saveLib(){try{localStorage.setItem('cr_lib',JSON.stringify(LIBRARY.map(t=>({id:t.id,title:t.title,artist:t.artist,album:t.album,genre:t.genre,year:t.year,dur:t.dur,cover:t.cover,needsFile:true}))));}catch(e){}}
-function loadLib(){try{LIBRARY=JSON.parse(localStorage.getItem('cr_lib')||'[]').map(t=>({...t,file:null,objectUrl:null,needsFile:true}));}catch(e){LIBRARY=[];}}
+let PLAYLISTS={}; // {id:{name,trackIds:[]}}
+let currentPlId=null;
+let ctxTrkIdx=-1;
+
+function saveLib(){try{localStorage.setItem('cr_lib2',JSON.stringify(LIBRARY.map(t=>({id:t.id,title:t.title,artist:t.artist,album:t.album,genre:t.genre,year:t.year,dur:t.dur,cover:t.cover,needsFile:true}))));}catch(e){}}
+function loadLib(){try{LIBRARY=JSON.parse(localStorage.getItem('cr_lib2')||'[]').map(t=>({...t,file:null,objectUrl:null,needsFile:true}));}catch(e){LIBRARY=[];}}
+function savePls(){try{localStorage.setItem('cr_pls',JSON.stringify(PLAYLISTS));}catch(e){}}
+function loadPls(){try{PLAYLISTS=JSON.parse(localStorage.getItem('cr_pls')||'{}');}catch(e){PLAYLISTS={}}}
 
 /* ═══════════════════════════════════════════════════
    AUDIO
 ═══════════════════════════════════════════════════ */
 const aud=new Audio();
-aud.volume=.85;
+aud.volume=.8;
 let actx=null,analyser=null,wvData=null;
-function ensureActx(){
-  if(actx)return;
-  try{actx=new(window.AudioContext||window.webkitAudioContext)();analyser=actx.createAnalyser();analyser.fftSize=512;wvData=new Uint8Array(analyser.frequencyBinCount);const s=actx.createMediaElementSource(aud);s.connect(analyser);analyser.connect(actx.destination);}catch(e){}
-}
-aud.addEventListener('timeupdate',()=>{
-  if(!aud.duration)return;
-  const p=aud.currentTime/aud.duration;
-  document.getElementById('progFill').style.width=(p*100).toFixed(2)+'%';
-  document.getElementById('mpFill').style.width=(p*100).toFixed(2)+'%';
-  document.getElementById('tNow').textContent=ft(aud.currentTime);
-});
+function ensureActx(){if(actx)return;try{actx=new(window.AudioContext||window.webkitAudioContext)();analyser=actx.createAnalyser();analyser.fftSize=512;wvData=new Uint8Array(analyser.frequencyBinCount);const s=actx.createMediaElementSource(aud);s.connect(analyser);analyser.connect(actx.destination);}catch(e){}}
+aud.addEventListener('timeupdate',()=>{if(!aud.duration)return;const p=aud.currentTime/aud.duration;document.getElementById('progFill').style.width=(p*100).toFixed(2)+'%';document.getElementById('mpFill').style.width=(p*100).toFixed(2)+'%';document.getElementById('tNow').textContent=ft(aud.currentTime);});
 aud.addEventListener('loadedmetadata',()=>{document.getElementById('tTot').textContent=ft(aud.duration);hideLoad();});
 aud.addEventListener('waiting',showLoad);aud.addEventListener('playing',hideLoad);
 aud.addEventListener('error',()=>{hideLoad();toast('Cannot play — re-add the file');});
 aud.addEventListener('ended',()=>{ST.repeat?(aud.currentTime=0,aud.play()):nextTrk();});
-function showLoad(){document.getElementById('loadOverlay').classList.add('show');}
-function hideLoad(){document.getElementById('loadOverlay').classList.remove('show');}
+function showLoad(){document.getElementById('loadOv').classList.add('on');}
+function hideLoad(){document.getElementById('loadOv').classList.remove('on');}
 
 /* ═══════════════════════════════════════════════════
-   COLOR EXTRACTION
+   PALETTE FROM COVER
 ═══════════════════════════════════════════════════ */
-function extractColor(coverDataUrl){
-  if(!coverDataUrl){resetColors();return;}
+function applyPalette(coverUrl){
+  const bg=document.getElementById('bgBlur');
+  if(!coverUrl){bg.classList.remove('on');bg.style.backgroundImage='';return;}
+  bg.style.backgroundImage=`url('${coverUrl}')`;
+  bg.classList.add('on');
   const img=new Image();
   img.onload=()=>{
-    const c=document.createElement('canvas');c.width=8;c.height=8;
-    const x=c.getContext('2d');x.drawImage(img,0,0,8,8);
+    const c=document.createElement('canvas');c.width=6;c.height=6;
+    const x=c.getContext('2d');x.drawImage(img,0,0,6,6);
     try{
-      const d=x.getImageData(0,0,8,8).data;
-      /* Find most saturated color */
-      let bestR=255,bestG=60,bestB=120,bestSat=0;
-      let avgR=0,avgG=0,avgB=0,n=0;
-      for(let i=0;i<d.length;i+=4){
-        if(d[i+3]<128)continue;
-        const r=d[i],g=d[i+1],b=d[i+2];
-        avgR+=r;avgG+=g;avgB+=b;n++;
-        const max=Math.max(r,g,b),min=Math.min(r,g,b),sat=max-min;
-        if(sat>bestSat&&max>60){bestSat=sat;bestR=r;bestG=g;bestB=b;}
-      }
-      if(n>0){avgR=Math.round(avgR/n);avgG=Math.round(avgG/n);avgB=Math.round(avgB/n);}
-      /* Primary = most saturated, Secondary = avg shifted cool, Accent = complementary bright */
-      const p=`${bestR},${bestG},${bestB}`;
-      const s=`${Math.round(avgR*.4+100)},${Math.round(avgG*.5+120)},${Math.round(avgB*.4+150)}`;
-      const aR=Math.min(255,255-bestR+120),aG=Math.min(255,255-bestG+180),aB=Math.max(0,bestB*.3+60);
-      const a=`${aR},${aG},${aB}`;
-      applyColors(p,s,a,coverDataUrl,avgR,avgG,avgB);
-    }catch(e){resetColors();}
+      const d=x.getImageData(0,0,6,6).data;
+      let br=124,bg2=111,bb=255,bsat=0;
+      for(let i=0;i<d.length;i+=4){if(d[i+3]<120)continue;const r=d[i],g=d[i+1],b=d[i+2],sat=Math.max(r,g,b)-Math.min(r,g,b);if(sat>bsat&&Math.max(r,g,b)>50){bsat=sat;br=r;bg2=g;bb=b;}}
+      const ac=`${br},${bg2},${bb}`;
+      const ac2=`${Math.min(255,255-br+100)},${Math.min(255,bb)},${Math.min(255,255-bg2+150)}`;
+      document.documentElement.style.setProperty('--ac',`rgb(${ac})`);
+      document.documentElement.style.setProperty('--ac2',`rgb(${ac2})`);
+      document.documentElement.style.setProperty('--acg',`rgba(${ac},.12)`);
+    }catch(e){}
   };
-  img.src=coverDataUrl;
-}
-
-function applyColors(p,s,a,coverDataUrl,avgR,avgG,avgB){
-  document.documentElement.style.setProperty('--p',p);
-  document.documentElement.style.setProperty('--s',s);
-  document.documentElement.style.setProperty('--a',a);
-  /* Cinematic BG */
-  const bgArt=document.getElementById('bg-art');
-  bgArt.style.backgroundImage=`url('${coverDataUrl}')`;
-  bgArt.classList.add('loaded');
-  /* Orb colors */
-  document.getElementById('orb1').style.background=`rgba(${p},.3)`;
-  document.getElementById('orb2').style.background=`rgba(${s},.25)`;
-}
-
-function resetColors(){
-  document.documentElement.style.setProperty('--p','255,60,120');
-  document.documentElement.style.setProperty('--s','80,200,255');
-  document.documentElement.style.setProperty('--a','220,255,80');
-  document.getElementById('bg-art').classList.remove('loaded');
+  img.src=coverUrl;
 }
 
 /* ═══════════════════════════════════════════════════
    ADD FILES
 ═══════════════════════════════════════════════════ */
-const audioExts=/\.(mp3|flac|wav|aac|ogg|m4a|opus|wma|aiff|ape)$/i;
-
+const AEXTS=/\.(mp3|flac|wav|aac|ogg|m4a|opus|wma|aiff|ape)$/i;
 async function addFiles(fileList){
-  if(!fileList||!fileList.length)return;
-  const files=Array.from(fileList).filter(f=>audioExts.test(f.name)||f.type.startsWith('audio/'));
+  if(!fileList?.length)return;
+  const files=Array.from(fileList).filter(f=>AEXTS.test(f.name)||f.type.startsWith('audio/'));
   if(!files.length){toast('No audio files found');return;}
-  hideAddMenu();
-  showProc(`Reading 1 / ${files.length}`);
-  let added=0;
+  showLoad();let added=0;
   for(let i=0;i<files.length;i++){
     const file=files[i];
-    document.getElementById('procTxt').textContent=`Reading ${i+1} / ${files.length}`;
     if(LIBRARY.find(t=>t.file?.name===file.name&&!t.needsFile))continue;
-    let meta={};
-    try{meta=await MetaParser.parse(file);}catch(e){}
+    let meta={};try{meta=await Meta.parse(file);}catch(e){}
     const objectUrl=URL.createObjectURL(file);
-    let dur=0;
-    try{dur=await new Promise(r=>{const a=new Audio();a.preload='metadata';a.onloadedmetadata=()=>{r(a.duration||0);a.src='';};a.onerror=()=>r(0);a.src=objectUrl;setTimeout(()=>r(0),3000);});}catch(e){}
+    let dur=0;try{dur=await new Promise(r=>{const a=new Audio();a.preload='metadata';a.onloadedmetadata=()=>{r(a.duration||0);a.src='';};a.onerror=()=>r(0);a.src=objectUrl;setTimeout(()=>r(0),3000);});}catch(e){}
     LIBRARY.push({id:Math.random().toString(36).slice(2),title:meta.title,artist:meta.artist,album:meta.album,genre:meta.genre,year:meta.year,dur,cover:meta.coverUrl||'',file,objectUrl,needsFile:false});
     added++;
-    if(added===1&&meta.coverUrl)extractColor(meta.coverUrl);
   }
-  hideProc();saveLib();
-  renderLib(document.getElementById('srch').value);
-  if(added>0){toast(`${added} track${added===1?'':'s'} added`);if(ST.idx<0){const fi=LIBRARY.findIndex(t=>t.objectUrl);if(fi>=0)loadIdx(fi,false);}}
+  hideLoad();saveLib();updateLibStats();renderLib(document.getElementById('srch').value);
+  if(added>0){toast(`${added} track${added===1?'':'s'} added`);if(ST.idx<0){const fi=LIBRARY.findIndex(t=>t.objectUrl&&!t.needsFile);if(fi>=0)loadIdx(fi,false);}}
   else toast('No new tracks added');
 }
 
 /* ═══════════════════════════════════════════════════
-   LOAD TRACK
+   LOAD & PLAY
 ═══════════════════════════════════════════════════ */
 function loadIdx(idx,play=true){
   if(!LIBRARY.length)return;
   idx=((idx%LIBRARY.length)+LIBRARY.length)%LIBRARY.length;
-  ST.idx=idx;
-  const t=LIBRARY[idx];
-  if(t.needsFile||!t.objectUrl){
-    document.getElementById('tTitle').textContent=t.title||'—';
-    document.getElementById('tArtist').textContent=t.artist||'—';
-    document.getElementById('mpT').textContent=t.title||'—';
-    document.getElementById('mpA').textContent=t.artist||'—';
-    setPlaying(false);toast('Tap Add to re-select this file');renderLib();return;
-  }
-  /* Art */
-  const art=t.cover||'';
-  document.getElementById('artImg').src=art;
-  document.getElementById('mpArt').src=art;
-  document.getElementById('bg-art').style.backgroundImage=art?`url('${art}')`:'none';
-  if(art){document.getElementById('bg-art').classList.add('loaded');extractColor(art);}
-  else resetColors();
-  /* Meta */
+  ST.idx=idx;const t=LIBRARY[idx];
+  if(t.needsFile||!t.objectUrl){setMeta(t);setPlaying(false);toast('Re-add this file to play it');renderLib();return;}
+  setMeta(t);applyPalette(t.cover);
+  showLoad();aud.src=t.objectUrl;aud.load();
+  if(play){ensureActx();if(actx?.state==='suspended')actx.resume();aud.play().then(()=>setPlaying(true)).catch(()=>{hideLoad();toast('Tap play');});}
+  else setPlaying(false);
+  renderLib(document.getElementById('srch').value);
+}
+
+function setMeta(t){
+  document.getElementById('artImg').src=t.cover||'';
+  document.getElementById('mpArt').src=t.cover||'';
   document.getElementById('tTitle').textContent=t.title||'Unknown';
   document.getElementById('tArtist').textContent=t.artist||'Unknown Artist';
-  document.getElementById('tAlbum').textContent=t.album||'';
   document.getElementById('mpT').textContent=t.title||'Unknown';
   document.getElementById('mpA').textContent=t.artist||'Unknown Artist';
-  document.getElementById('trkNumBg').textContent=String(idx+1).padStart(2,'0');
-  /* Chips */
+  document.getElementById('tTot').textContent=ft(t.dur||0);
+  document.getElementById('progFill').style.width='0%';
+  document.getElementById('tNow').textContent='0:00';
+  document.getElementById('btnLike').classList.toggle('on',ST.liked.has(ST.idx));
   const chips=[];
   if(t.genre)chips.push(`<span class="tchip">${esc(t.genre)}</span>`);
   if(t.year)chips.push(`<span class="tchip">${esc(t.year)}</span>`);
   document.getElementById('tChips').innerHTML=chips.join('');
-  /* Like */
-  document.getElementById('btnLike').classList.toggle('on',ST.liked.has(idx));
-  document.getElementById('tTot').textContent=ft(t.dur||0);
-  document.getElementById('progFill').style.width='0%';
-  document.getElementById('tNow').textContent='0:00';
-  /* Audio */
-  showLoad();aud.src=t.objectUrl;aud.load();
-  if(play){
-    ensureActx();
-    if(actx&&actx.state==='suspended')actx.resume();
-    aud.play().then(()=>setPlaying(true)).catch(()=>{hideLoad();toast('Tap play to start');});
-  }else setPlaying(false);
-  renderLib(document.getElementById('srch').value);
 }
 
-/* ═══════════════════════════════════════════════════
-   PLAYBACK
-═══════════════════════════════════════════════════ */
 function togglePlay(){
-  ensureActx();
-  if(actx&&actx.state==='suspended')actx.resume();
-  if(ST.idx<0){const fi=LIBRARY.findIndex(t=>t.objectUrl&&!t.needsFile);if(fi>=0)loadIdx(fi);else toast('Add files first');return;}
-  const t=LIBRARY[ST.idx];
-  if(t.needsFile||!t.objectUrl){toast('Re-add this file to play');return;}
+  ensureActx();if(actx?.state==='suspended')actx.resume();
+  if(ST.idx<0){const fi=LIBRARY.findIndex(t=>t.objectUrl&&!t.needsFile);if(fi>=0)loadIdx(fi);else{toast('Add files first');goTab(1);}return;}
+  const t=LIBRARY[ST.idx];if(t.needsFile||!t.objectUrl){toast('Re-add to play');return;}
   aud.paused?aud.play().then(()=>setPlaying(true)).catch(()=>{}):( aud.pause(),setPlaying(false));
 }
+
 function setPlaying(v){
   ST.playing=v;
   document.getElementById('app').classList.toggle('playing',v);
@@ -1354,18 +1031,25 @@ function setPlaying(v){
   const pp='<polygon points="5,3 19,12 5,21"/>';
   document.getElementById('playIco').innerHTML=v?pi:pp;
   document.getElementById('mpIco').innerHTML=v?pi:pp;
+  document.getElementById('nowStatus').textContent=v?'NOW PLAYING':'PAUSED';
+  /* Characters */
+  if(v)startChars();else stopChars();
+  renderLib(document.getElementById('srch').value);
 }
+
 function nextTrk(){
   if(!LIBRARY.length)return;
-  if(ST.shuffle){const av=LIBRARY.filter(t=>t.objectUrl&&!t.needsFile);if(av.length)loadIdx(LIBRARY.indexOf(av[Math.floor(Math.random()*av.length)]));}
-  else loadIdx((ST.idx+1)%LIBRARY.length);
+  const avail=LIBRARY.map((_,i)=>i).filter(i=>!LIBRARY[i].needsFile&&LIBRARY[i].objectUrl);
+  if(!avail.length)return;
+  if(ST.shuffle)loadIdx(avail[Math.floor(Math.random()*avail.length)]);
+  else{let n=(ST.idx+1)%LIBRARY.length;loadIdx(n);}
 }
-function prevTrk(){if(aud.currentTime>4){aud.currentTime=0;return;}loadIdx((ST.idx-1+LIBRARY.length)%LIBRARY.length);}
+function prevTrk(){if(aud.currentTime>4){aud.currentTime=0;return;}let p=(ST.idx-1+LIBRARY.length)%LIBRARY.length;loadIdx(p);}
 function togShuffle(){ST.shuffle=!ST.shuffle;['btnShuffle','ctrlShuffle'].forEach(id=>document.getElementById(id)?.classList.toggle('on',ST.shuffle));toast(ST.shuffle?'Shuffle on':'Shuffle off');}
 function togRepeat(){ST.repeat=!ST.repeat;['btnRepeat','ctrlRepeat'].forEach(id=>document.getElementById(id)?.classList.toggle('on',ST.repeat));toast(ST.repeat?'Repeat on':'Repeat off');}
-function togLike(){if(ST.idx<0)return;ST.liked.has(ST.idx)?ST.liked.delete(ST.idx):ST.liked.add(ST.idx);document.getElementById('btnLike').classList.toggle('on',ST.liked.has(ST.idx));toast(ST.liked.has(ST.idx)?'Liked':'Unliked');}
-function setVol(v){ST.vol=+v/100;aud.volume=ST.vol;document.getElementById('vv').textContent=v;document.getElementById('volSl').style.setProperty('--p2',v);}
-setVol(85);
+function togLike(){if(ST.idx<0)return;ST.liked.has(ST.idx)?ST.liked.delete(ST.idx):ST.liked.add(ST.idx);document.getElementById('btnLike').classList.toggle('on',ST.liked.has(ST.idx));toast(ST.liked.has(ST.idx)?'Liked':'Removed from liked');}
+function setVol(v){ST.vol=+v/100;aud.volume=ST.vol;document.getElementById('vv').textContent=v;document.getElementById('volSl').style.setProperty('--pv',v);}
+setVol(80);
 
 /* ═══════════════════════════════════════════════════
    SEEKING
@@ -1374,104 +1058,118 @@ function doSeek(p){if(!aud.duration)return;aud.currentTime=p*aud.duration;docume
 function seekC(e){const r=e.currentTarget.getBoundingClientRect();doSeek(Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)));}
 function seekT(e){e.preventDefault();const r=e.currentTarget.getBoundingClientRect();doSeek(Math.max(0,Math.min(1,(e.touches[0].clientX-r.left)/r.width)));}
 function wvSeek(e){const r=e.currentTarget.getBoundingClientRect();doSeek(Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)));}
+function wvTouch(e){e.preventDefault();const r=e.currentTarget.getBoundingClientRect();doSeek(Math.max(0,Math.min(1,(e.touches[0].clientX-r.left)/r.width)));}
 
 /* ═══════════════════════════════════════════════════
-   WAVEFORM — uses real frequency analyser data
+   WAVEFORM
 ═══════════════════════════════════════════════════ */
 let wvT=0;
 function drawWave(){
   const cvs=document.getElementById('wvCvs');
-  const W=cvs.offsetWidth||390;
-  if(cvs.width!==W){cvs.width=W;cvs.height=52;}
-  const ctx=cvs.getContext('2d');
-  ctx.clearRect(0,0,W,52);
-
-  /* Get CSS color vars */
+  const W=cvs.offsetWidth||380;if(cvs.width!==W){cvs.width=W;cvs.height=48;}
+  const ctx=cvs.getContext('2d');ctx.clearRect(0,0,W,48);
   const cs=getComputedStyle(document.documentElement);
-  const pc=cs.getPropertyValue('--p').trim()||'255,60,120';
-  const ac=cs.getPropertyValue('--a').trim()||'220,255,80';
+  const ac=cs.getPropertyValue('--ac').trim()||'#7c6fff';
+  const ac2=cs.getPropertyValue('--ac2').trim()||'#ff6fb0';
   const prog=aud.duration?aud.currentTime/aud.duration:0;
-
   if(analyser&&ST.playing){
     analyser.getByteFrequencyData(wvData);
-    /* Frequency bar visualizer */
-    const bars=64;
-    const bw=W/bars;
+    const bars=60,bw=W/bars;
     for(let i=0;i<bars;i++){
       const v=wvData[Math.floor(i*wvData.length/bars)]/255;
-      const h=4+v*46;
-      const x=i*bw;
-      const played=x/W<=prog;
-      const alpha=played?.9:.25;
-      /* Gradient from primary to accent based on frequency */
-      const t2=i/bars;
-      const r1=parseInt(pc.split(',')[0]),g1=parseInt(pc.split(',')[1]),b1=parseInt(pc.split(',')[2]);
-      const r2=parseInt(ac.split(',')[0]),g2=parseInt(ac.split(',')[1]),b2=parseInt(ac.split(',')[2]);
-      const r=Math.round(r1+(r2-r1)*t2),g=Math.round(g1+(g2-g1)*t2),b=Math.round(b1+(b2-b1)*t2);
-      ctx.fillStyle=`rgba(${r},${g},${b},${alpha})`;
-      ctx.fillRect(x+1,52-h,bw-2,h);
+      const h=Math.max(3,v*44);
+      const played=(i/bars)<=prog;
+      ctx.fillStyle=played?ac:ac2;
+      ctx.globalAlpha=played?.85:.2;
+      ctx.beginPath();ctx.roundRect(i*bw+1,48-h,bw-2,h,2);ctx.fill();
     }
+    ctx.globalAlpha=1;
   }else{
-    /* Idle sine wave */
-    const amp=ST.playing?14:5;
     ctx.beginPath();
     for(let x=0;x<W;x++){
-      const y=26+Math.sin(x*.04+wvT*.06)*amp+Math.sin(x*.09-wvT*.04)*amp*.4;
+      const amp=(ST.playing?10:3)*(.5+.5*Math.sin(x*.04+wvT*.06));
+      const y=24+Math.sin(x*.035+wvT*.045)*amp+Math.sin(x*.09-wvT*.035)*amp*.4;
       x===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
     }
-    const g2=ctx.createLinearGradient(0,0,W,0);
-    g2.addColorStop(0,`rgba(${pc},.08)`);
-    g2.addColorStop(Math.max(0,Math.min(1,prog)),`rgba(${pc},.7)`);
-    g2.addColorStop(Math.min(1,prog+.01),`rgba(${ac},.2)`);
-    g2.addColorStop(1,`rgba(${ac},.08)`);
-    ctx.strokeStyle=g2;ctx.lineWidth=1.5;ctx.stroke();
+    const g=ctx.createLinearGradient(0,0,W,0);
+    g.addColorStop(0,ac+'22');
+    g.addColorStop(Math.max(0,Math.min(1,prog)),ac);
+    g.addColorStop(Math.min(1,prog+.01),ac2+'44');
+    g.addColorStop(1,ac2+'22');
+    ctx.strokeStyle=g;ctx.lineWidth=1.5;ctx.stroke();
   }
   wvT+=ST.playing?.06:.015;
 }
 setInterval(drawWave,33);
 
 /* ═══════════════════════════════════════════════════
+   CHARACTER SYSTEM
+═══════════════════════════════════════════════════ */
+const CHARS=['cJakara','cSpyra','cCrashina','cSonia','cMarie','cTinette'];
+const MOVES=['m-bounce','m-spin','m-freeze','m-wave','m-slide'];
+const ALL_MOVES=[...MOVES,'m-idle'];
+let charTimers=[];
+let activeChar=0;
+
+function clearCharMoves(el){ALL_MOVES.forEach(m=>el.classList.remove(m));}
+
+function startChars(){
+  stopChars();
+  showChar(Math.floor(Math.random()*CHARS.length));
+  // Cycle character every 8s
+  charTimers.push(setInterval(()=>{showChar(Math.floor(Math.random()*CHARS.length));},8000));
+  // Cycle move every 1.8s
+  charTimers.push(setInterval(()=>{
+    const el=document.getElementById(CHARS[activeChar]);
+    if(el){clearCharMoves(el);el.classList.add(MOVES[Math.floor(Math.random()*MOVES.length)]);}
+  },1800));
+}
+function stopChars(){
+  charTimers.forEach(clearInterval);charTimers=[];
+  CHARS.forEach(id=>{const el=document.getElementById(id);if(el){clearCharMoves(el);el.classList.remove('visible');el.classList.add('m-idle');}});
+}
+function showChar(idx){
+  CHARS.forEach((id,i)=>{
+    const el=document.getElementById(id);if(!el)return;
+    clearCharMoves(el);
+    if(i===idx){el.classList.add('visible');el.classList.add('m-bounce');}
+    else{el.classList.remove('visible');el.classList.add('m-idle');}
+  });
+  activeChar=idx;
+}
+
+/* ═══════════════════════════════════════════════════
    LIBRARY RENDER
 ═══════════════════════════════════════════════════ */
+function updateLibStats(){document.getElementById('libStats').textContent=`${LIBRARY.length} track${LIBRARY.length===1?'':'s'}`;}
+
 function renderLib(q=''){
+  updateLibStats();
   const list=document.getElementById('trkList');
   const q2=q.toLowerCase();
   const rows=LIBRARY.map((t,i)=>({t,i})).filter(({t})=>!q2||(t.title+t.artist+(t.album||'')).toLowerCase().includes(q2));
-  if(!LIBRARY.length){
-    list.innerHTML=`<div class="lib-empty">
-      <div class="lib-empty-icon">♪</div>
-      <p>Your library is empty.<br>Add music from your computer or NAS.</p>
-      <button class="lib-empty-btn" onclick="togAddMenu()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        ADD FILES
-      </button>
-    </div>`;
-    return;
-  }
+  if(!LIBRARY.length){list.innerHTML=`<div class="lib-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg><p>No tracks yet.<br>Tap Add Files or drag &amp; drop audio here.</p></div>`;return;}
   if(!rows.length){list.innerHTML=`<div class="lib-empty"><p>No results for "${esc(q)}"</p></div>`;return;}
   list.innerHTML=rows.map(({t,i},ri)=>{
-    const isOn=i===ST.idx;
-    const nf=t.needsFile||!t.objectUrl;
-    const numEl=isOn&&ST.playing
-      ?'<div class="bars"><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>'
-      :`<span style="font-family:var(--display);font-size:13px">${String(i+1).padStart(2,'0')}</span>`;
-    return`<div class="trk${isOn?' on':''}${nf?' trk-dim':''}" onclick="loadIdx(${i})" style="animation-delay:${ri*15}ms;${nf?'opacity:.4':''}">
-      <div class="trk-num playing-ic">${numEl}</div>
+    const on=i===ST.idx,nf=t.needsFile||!t.objectUrl;
+    const numEl=on&&ST.playing?'<div class="pbars"><div class="pbar"></div><div class="pbar"></div><div class="pbar"></div></div>':`<span style="font-family:var(--mono);font-size:10px">${String(i+1).padStart(2,'0')}</span>`;
+    return`<div class="trk${on?' on':''}${nf?' nf':''}" onclick="loadIdx(${i})" oncontextmenu="openCtx(event,${i})" style="${nf?'opacity:.45':''}animation-delay:${ri*12}ms">
+      <div class="trk-n">${numEl}</div>
       <img class="trk-art" src="${t.cover||''}" alt="" onerror="this.style.visibility='hidden'">
       <div class="trk-info">
-        <div class="trk-name">${esc(t.title||'Unknown')}</div>
-        <div class="trk-meta">${esc(t.artist||'Unknown')}${t.album?' · '+esc(t.album):''}${nf?' · <em style="opacity:.6;font-style:normal">re-add file</em>':''}</div>
+        <div class="trk-name">${esc(t.title||'Unknown')}${nf?' <span style="font-size:9px;opacity:.5">(re-add)</span>':''}</div>
+        <div class="trk-sub">${esc(t.artist||'Unknown')}${t.album?' · '+esc(t.album):''}</div>
       </div>
       <div class="trk-dur">${ft(t.dur||0)}</div>
-      <button class="trk-del" onclick="event.stopPropagation();removeTrk(${i})" title="Remove">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+      <button class="trk-del" onclick="event.stopPropagation();removeTrk(${i})">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
       </button>
     </div>`;
   }).join('');
 }
 
 function removeTrk(i){
-  if(LIBRARY[i].objectUrl)URL.revokeObjectURL(LIBRARY[i].objectUrl);
+  if(LIBRARY[i]?.objectUrl)URL.revokeObjectURL(LIBRARY[i].objectUrl);
   LIBRARY.splice(i,1);
   if(ST.idx===i){aud.pause();setPlaying(false);ST.idx=-1;}
   else if(ST.idx>i)ST.idx--;
@@ -1479,52 +1177,167 @@ function removeTrk(i){
 }
 
 /* ═══════════════════════════════════════════════════
-   ADD MENU
+   CONTEXT MENU
 ═══════════════════════════════════════════════════ */
-let addOpen=false;
-function togAddMenu(){addOpen=!addOpen;document.getElementById('addMenu').classList.toggle('open',addOpen);}
-function hideAddMenu(){addOpen=false;document.getElementById('addMenu').classList.remove('open');}
-function pickFiles(){hideAddMenu();document.getElementById('fpAudio').click();}
-function pickFolder(){hideAddMenu();document.getElementById('fpFolder').click();}
+function openCtx(e,trkIdx){
+  e.preventDefault();e.stopPropagation();
+  ctxTrkIdx=trkIdx;
+  const m=document.getElementById('ctx');
+  const plItems=Object.entries(PLAYLISTS).map(([id,pl])=>`<div class="ctx-item" onclick="addTrkToPl('${id}',${trkIdx});closeCtx()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>${esc(pl.name)}</div>`).join('');
+  m.innerHTML=`
+    <div class="ctx-item" onclick="loadIdx(${trkIdx});closeCtx()"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>Play now</div>
+    <div class="ctx-sep"></div>
+    <div class="ctx-item" onclick="openPlPicker(${trkIdx});closeCtx()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/><path d="M9 9l12-2"/></svg>Add to playlist…</div>
+    ${plItems?'<div class="ctx-sep"></div>'+plItems:''}
+    <div class="ctx-sep"></div>
+    <div class="ctx-item" onclick="removeTrk(${trkIdx});closeCtx()" style="color:#ff6b6b"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>Remove</div>`;
+  const appRect=document.getElementById('app').getBoundingClientRect();
+  let x=e.clientX-appRect.left,y=e.clientY-appRect.top;
+  if(x+190>appRect.width)x=appRect.width-196;
+  if(y+200>appRect.height)y=y-200;
+  m.style.left=x+'px';m.style.top=y+'px';
+  m.classList.add('on');
+}
+function closeCtx(){document.getElementById('ctx').classList.remove('on');}
+document.addEventListener('click',()=>closeCtx());
 
-document.addEventListener('click',e=>{
-  const menu=document.getElementById('addMenu');
-  const btn=document.querySelector('.add-btn');
-  if(menu&&btn&&!menu.contains(e.target)&&!btn.contains(e.target))hideAddMenu();
-});
+/* ═══════════════════════════════════════════════════
+   PLAYLIST ENGINE
+═══════════════════════════════════════════════════ */
+function openNewPl(){document.getElementById('plNameIn').value='';document.getElementById('plModal').classList.add('on');setTimeout(()=>document.getElementById('plNameIn').focus(),100);}
+function closePlModal(){document.getElementById('plModal').classList.remove('on');}
+function createPl(){
+  const name=document.getElementById('plNameIn').value.trim();
+  if(!name)return;
+  const id='pl_'+Date.now();
+  PLAYLISTS[id]={name,trackIds:[]};
+  savePls();renderPlaylists();closePlModal();toast(`Playlist "${name}" created`);
+}
+
+function renderPlaylists(){
+  const list=document.getElementById('plList');
+  const pls=Object.entries(PLAYLISTS);
+  const cards=pls.map(([id,pl])=>{
+    const tracks=pl.trackIds.map(tid=>LIBRARY.find(t=>t.id===tid)).filter(Boolean);
+    const covers=tracks.slice(0,4).map(t=>t.cover?`<img src="${t.cover}" alt="">`:
+      `<div class="pl-art-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>`).join('');
+    const ac=id===currentPlId?' active-pl':'';
+    return`<div class="pl-card${ac}" onclick="openPlDetail('${id}')">
+      <div class="pl-art">${covers||'<div class="pl-art-empty" style="grid-column:span 2;grid-row:span 2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>'}</div>
+      <div class="pl-info">
+        <div class="pl-name">${esc(pl.name)}</div>
+        <div class="pl-ct">${tracks.length} track${tracks.length===1?'':'s'}</div>
+      </div>
+      <div class="pl-actions">
+        <button class="pl-btn" onclick="event.stopPropagation();playPlaylist('${id}',false)" title="Play"><svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13"><polygon points="5,3 19,12 5,21"/></svg></button>
+        <button class="pl-btn" onclick="event.stopPropagation();deletePl('${id}')" title="Delete" style="color:#ff6b6b"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg></button>
+      </div>
+    </div>`;
+  }).join('');
+  list.innerHTML=document.getElementById('newPlCard').outerHTML+cards;
+  // Re-attach event
+  document.getElementById('newPlCard').onclick=openNewPl;
+}
+
+function openPlDetail(id){
+  currentPlId=id;
+  const pl=PLAYLISTS[id];if(!pl)return;
+  document.getElementById('plDetailName').textContent=pl.name;
+  renderPlDetail();
+  const det=document.getElementById('plDetail');
+  det.classList.add('on');
+  requestAnimationFrame(()=>det.classList.add('slide-in'));
+}
+function closePlDetail(){
+  const det=document.getElementById('plDetail');
+  det.classList.remove('slide-in');
+  setTimeout(()=>det.classList.remove('on'),300);
+}
+function renderPlDetail(){
+  const pl=PLAYLISTS[currentPlId];if(!pl)return;
+  const tracks=pl.trackIds.map((tid,i)=>({t:LIBRARY.find(t=>t.id===tid),i,tid})).filter(x=>x.t);
+  document.getElementById('plDetailList').innerHTML=tracks.length
+    ?tracks.map(({t,i,tid},ri)=>`
+      <div class="trk${LIBRARY.indexOf(t)===ST.idx?' on':''}" onclick="playFromPl('${currentPlId}','${tid}')" style="animation-delay:${ri*10}ms">
+        <div class="trk-n"><span style="font-family:var(--mono);font-size:10px">${String(ri+1).padStart(2,'0')}</span></div>
+        <img class="trk-art" src="${t.cover||''}" alt="" onerror="this.style.visibility='hidden'">
+        <div class="trk-info"><div class="trk-name">${esc(t.title||'Unknown')}</div><div class="trk-sub">${esc(t.artist||'Unknown')}</div></div>
+        <div class="trk-dur">${ft(t.dur||0)}</div>
+        <button class="trk-del" onclick="event.stopPropagation();removeTrkFromPl('${currentPlId}','${tid}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>`).join('')
+    :`<div class="lib-empty"><p>This playlist is empty.<br>Right-click a track in Library to add it.</p></div>`;
+}
+
+function addTrkToPl(plId,trkIdx){
+  const pl=PLAYLISTS[plId];if(!pl)return;
+  const tid=LIBRARY[trkIdx]?.id;if(!tid)return;
+  if(pl.trackIds.includes(tid)){toast('Already in playlist');return;}
+  pl.trackIds.push(tid);savePls();renderPlaylists();
+  if(currentPlId===plId)renderPlDetail();
+  toast(`Added to "${pl.name}"`);
+}
+function removeTrkFromPl(plId,tid){
+  const pl=PLAYLISTS[plId];if(!pl)return;
+  pl.trackIds=pl.trackIds.filter(t=>t!==tid);savePls();renderPlDetail();renderPlaylists();
+}
+function deletePl(id){
+  const pl=PLAYLISTS[id];if(!pl)return;
+  delete PLAYLISTS[id];savePls();renderPlaylists();
+  if(currentPlId===id)closePlDetail();
+  toast('Playlist deleted');
+}
+function playPlaylist(plId,shuffle){
+  const pl=PLAYLISTS[plId];if(!pl||!pl.trackIds.length){toast('Playlist is empty');return;}
+  ST.shuffle=shuffle;
+  if(shuffle)document.getElementById('btnShuffle')?.classList.add('on');
+  const ids=shuffle?[...pl.trackIds].sort(()=>Math.random()-.5):pl.trackIds;
+  const first=LIBRARY.findIndex(t=>t.id===ids[0]);
+  if(first>=0)loadIdx(first);
+  closePlDetail();goTab(0);
+}
+function playFromPl(plId,tid){
+  const idx=LIBRARY.findIndex(t=>t.id===tid);if(idx>=0)loadIdx(idx);closePlDetail();goTab(0);
+}
+
+/* Playlist picker (add to playlist from track long-press) */
+function openPlPicker(trkIdx){
+  ctxTrkIdx=trkIdx;
+  const t=LIBRARY[trkIdx];if(!t)return;
+  document.getElementById('pickerTrkName').textContent=t.title||'Unknown';
+  const pls=Object.entries(PLAYLISTS);
+  document.getElementById('pickerPlList').innerHTML=pls.length
+    ?pls.map(([id,pl])=>`<div class="picker-pl" onclick="addTrkToPl('${id}',${trkIdx});closePlPicker()"><div class="picker-pl-ico">${pl.trackIds.slice(0,1).map(tid=>{const lt=LIBRARY.find(t=>t.id===tid);return lt?.cover?`<img src="${lt.cover}" alt="">`:'';}).join('')||`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/></svg>`}</div><div class="picker-pl-name">${esc(pl.name)}</div></div>`).join('')
+    :`<div style="padding:12px;font-size:12px;color:var(--dim);text-align:center">No playlists yet. Create one first.</div>`;
+  document.getElementById('plPicker').classList.add('on');
+}
+function closePlPicker(){document.getElementById('plPicker').classList.remove('on');}
+document.getElementById('plNameIn').addEventListener('keydown',e=>{if(e.key==='Enter')createPl();});
+
+/* ═══════════════════════════════════════════════════
+   TABS + NAV
+═══════════════════════════════════════════════════ */
+let curTab=0;
+function goTab(idx){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
+  const pages=['pgNow','pgLib','pgPlaylists'];
+  document.getElementById(pages[idx]).classList.add('on');
+  document.getElementById('nav'+idx).classList.add('on');
+  document.getElementById('tab'+idx).classList.add('on');
+  document.getElementById('mini').classList.toggle('on',idx!==0&&ST.idx>=0);
+  curTab=idx;
+  if(idx===1)renderLib(document.getElementById('srch').value);
+  if(idx===2)renderPlaylists();
+}
 
 /* ═══════════════════════════════════════════════════
    DRAG & DROP
 ═══════════════════════════════════════════════════ */
 document.addEventListener('dragover',e=>e.preventDefault());
 document.addEventListener('drop',e=>{e.preventDefault();if(e.dataTransfer.files.length)addFiles(e.dataTransfer.files);});
-
-/* ═══════════════════════════════════════════════════
-   TABS + NAV
-═══════════════════════════════════════════════════ */
-function goTab(name,idx){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('on'));
-  document.getElementById('pg'+name).classList.add('on');
-  document.getElementById('nav'+idx).classList.add('on');
-  document.getElementById('mini').classList.toggle('hidden',name==='Now'||ST.idx<0);
-  if(name==='Lib')renderLib(document.getElementById('srch').value);
-  /* Update nav indicator */
-  const navEl=document.getElementById('nav'+idx);
-  const navRect=navEl.getBoundingClientRect();
-  const navParRect=document.getElementById('nav').getBoundingClientRect();
-  const ind=document.getElementById('navInd');
-  ind.style.left=(navRect.left-navParRect.left)+'px';
-  ind.style.width=navRect.width+'px';
-}
-
-/* ═══════════════════════════════════════════════════
-   TOAST + PROC
-═══════════════════════════════════════════════════ */
-let toastT=null;
-function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),2400);}
-function showProc(msg){document.getElementById('procTxt').textContent=msg;document.getElementById('proc').classList.add('show');}
-function hideProc(){document.getElementById('proc').classList.remove('show');}
 
 /* ═══════════════════════════════════════════════════
    KEYBOARD
@@ -1534,108 +1347,24 @@ document.addEventListener('keydown',e=>{
   if(e.code==='Space'){e.preventDefault();togglePlay();}
   if(e.code==='ArrowRight')aud.currentTime=Math.min(aud.duration||0,aud.currentTime+10);
   if(e.code==='ArrowLeft')aud.currentTime=Math.max(0,aud.currentTime-10);
+  if(e.code==='ArrowUp'){const v=Math.min(100,+document.getElementById('volSl').value+5);document.getElementById('volSl').value=v;setVol(v);}
+  if(e.code==='ArrowDown'){const v=Math.max(0,+document.getElementById('volSl').value-5);document.getElementById('volSl').value=v;setVol(v);}
   if(e.code==='KeyN')nextTrk();if(e.code==='KeyP')prevTrk();
+  if(e.key==='Escape'){closeCtx();closePlModal();closePlPicker();closePlDetail();}
 });
 
 /* ═══════════════════════════════════════════════════
-   UTILS + INIT
+   TOAST + UTILS
 ═══════════════════════════════════════════════════ */
+let toastT=null;
+function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('on'),2200);}
 function ft(s){if(!s||isNaN(s))return'0:00';return Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
-/* Set initial nav indicator */
-window.addEventListener('load',()=>{
-  const el=document.getElementById('nav0');
-  const pr=document.getElementById('nav').getBoundingClientRect();
-  const er=el.getBoundingClientRect();
-  const ind=document.getElementById('navInd');
-  ind.style.left=(er.left-pr.left)+'px';
-  ind.style.width=er.width+'px';
-});
-
-loadLib();
-renderLib();
-
 /* ═══════════════════════════════════════════════════
-   CHARACTER CONTROLLER
+   INIT
 ═══════════════════════════════════════════════════ */
-const CHARS = ['charJakara','charSpyra','charCrashina','charSonia','charMarie','charTinette'];
-const MOVES = ['move-bounce','move-spin','move-freeze','move-windmill','move-toprock','move-headspin'];
-// Daxa always shows with Jakara; Milou always shows with Tinette
-let activeCharIdx = 0;
-let charTimer = null;
-let moveTimer = null;
-
-function showChar(idx){
-  CHARS.forEach((id,i)=>{
-    const el=document.getElementById(id);
-    if(el){
-      el.classList.toggle('active',i===idx);
-      // Remove all move classes when hiding
-      if(i!==idx){MOVES.forEach(m=>el.classList.remove(m));el.classList.add('move-idle');}
-    }
-  });
-  // Daxa shown with Jakara
-  const daxa=document.getElementById('charDaxa');
-  if(daxa)daxa.classList.toggle('active',idx===0);
-  // Milou shown with Tinette
-  const dog=document.getElementById('dogChar');
-  if(dog)dog.classList.toggle('active',idx===5);
-  activeCharIdx=idx;
-}
-
-function applyMove(charEl, move){
-  MOVES.forEach(m=>charEl.classList.remove(m));
-  charEl.classList.remove('move-idle');
-  charEl.classList.add(move);
-}
-
-function startCharShow(){
-  if(charTimer)return; // already running
-  showChar(activeCharIdx);
-  // Cycle characters every 8 seconds
-  charTimer=setInterval(()=>{
-    const next=(activeCharIdx+1)%CHARS.length;
-    showChar(next);
-    cycleMoves();
-  },8000);
-  cycleMoves();
-}
-
-function stopCharShow(){
-  clearInterval(charTimer);clearInterval(moveTimer);
-  charTimer=null;moveTimer=null;
-  // Set all to idle
-  CHARS.forEach(id=>{
-    const el=document.getElementById(id);
-    if(el){MOVES.forEach(m=>el.classList.remove(m));el.classList.add('move-idle');}
-  });
-}
-
-function cycleMoves(){
-  clearInterval(moveTimer);
-  const applyRandom=()=>{
-    const el=document.getElementById(CHARS[activeCharIdx]);
-    if(el&&ST.playing){
-      const move=MOVES[Math.floor(Math.random()*MOVES.length)];
-      applyMove(el,move);
-    }
-  };
-  applyRandom();
-  moveTimer=setInterval(applyRandom,2000);
-}
-
-// Hook into setPlaying
-const _origSetPlaying=setPlaying;
-function setPlaying(v){
-  _origSetPlaying(v);
-  if(v){startCharShow();}
-  else{stopCharShow();}
-}
-
-// Init — show first char idle
-showChar(0);
-
+loadLib();loadPls();updateLibStats();renderLib();renderPlaylists();
 </script>
 </body>
 </html>
