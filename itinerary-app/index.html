@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Itinerary</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="app">
+  <header id="topbar">
+    <span class="app-name">Itinerary</span>
+    <div class="tb-spacer"></div>
+    <span id="providerBadge" class="badge">routing: …</span>
+  </header>
+
+  <nav id="tabs">
+    <button class="tab on" data-view="planForm">Plan</button>
+    <button class="tab" data-view="tripsList">My Trips</button>
+    <button class="tab" data-view="atlas">Atlas</button>
+  </nav>
+
+  <main id="content">
+    <section id="planForm">
+      <h1>Plan a trip</h1>
+      <div class="field">
+        <label for="destination">Destination</label>
+        <input id="destination" type="text" placeholder="e.g. Kyoto, Japan" autocomplete="off">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="startDate">Start</label>
+          <input id="startDate" type="date">
+        </div>
+        <div class="field">
+          <label for="endDate">End</label>
+          <input id="endDate" type="date">
+        </div>
+      </div>
+      <div class="field">
+        <label for="interests">Interests</label>
+        <input id="interests" type="text" placeholder="food, history, hiking, museums...">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="pace">Pace</label>
+          <select id="pace">
+            <option value="relaxed">Relaxed</option>
+            <option value="moderate" selected>Moderate</option>
+            <option value="packed">Packed</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="mode">Getting around</label>
+          <select id="mode">
+            <option value="walking" selected>Walking</option>
+            <option value="transit">Transit</option>
+            <option value="driving">Driving</option>
+            <option value="cycling">Cycling</option>
+          </select>
+        </div>
+      </div>
+      <button id="planBtn" class="btn-primary">
+        <span id="planBtnLabel">Generate itinerary</span>
+      </button>
+      <p id="formError" class="error" hidden></p>
+    </section>
+
+    <section id="results" hidden>
+      <div id="resultsHeader">
+        <button id="backBtn" class="btn-ghost">&larr; New plan</button>
+        <h2 id="resultsTitle"></h2>
+        <div class="tb-spacer"></div>
+        <button id="saveTripBtn" class="btn-ghost">Save trip</button>
+      </div>
+      <div class="field" id="travelersField">
+        <label for="travelers">Who's coming</label>
+        <input id="travelers" type="text" placeholder="e.g. Mom, Dad, Priya (comma-separated)" autocomplete="off">
+      </div>
+      <p id="saveStatus" class="save-status" hidden></p>
+      <div id="map"></div>
+      <div id="days"></div>
+    </section>
+
+    <section id="tripsList" hidden>
+      <h1>My Trips</h1>
+      <p class="section-sub">Every trip saved by anyone in the family.</p>
+      <div id="tripsListItems"></div>
+      <p id="tripsEmpty" class="empty-state" hidden>No trips saved yet — plan one and hit "Save trip".</p>
+    </section>
+
+    <section id="atlas" hidden>
+      <h1>Atlas</h1>
+      <p class="section-sub">Every place your family has ever planned to go.</p>
+      <div id="atlasStats" class="atlas-stats"></div>
+      <div id="atlasMap"></div>
+    </section>
+  </main>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

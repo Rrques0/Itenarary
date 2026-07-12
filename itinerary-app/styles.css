@@ -1,0 +1,108 @@
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0a12;
+  --s1:#12121e;
+  --s2:#181828;
+  --line:rgba(255,255,255,.08);
+  --txt:#f0eeff;
+  --sub:rgba(240,238,255,.55);
+  --dim:rgba(240,238,255,.3);
+  --ac:#7c6fff;
+  --ac2:#ff6fb0;
+  --err:#ff6f6f;
+  --sans:'Space Grotesk',system-ui,sans-serif;
+  --mono:'Space Mono',monospace;
+}
+html,body{width:100%;min-height:100%;background:var(--bg);color:var(--txt);font-family:var(--sans)}
+#app{max-width:720px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column}
+
+#topbar{display:flex;align-items:center;padding:18px 20px;border-bottom:1px solid var(--line)}
+.app-name{font-size:12px;font-weight:700;letter-spacing:4px;color:var(--dim);text-transform:uppercase}
+.tb-spacer{flex:1}
+.badge{font-family:var(--mono);font-size:10px;color:var(--dim);border:1px solid var(--line);border-radius:6px;padding:4px 8px}
+
+#tabs{display:flex;border-bottom:1px solid var(--line);padding:0 20px}
+.tab{
+  padding:12px 16px;font-family:var(--sans);font-size:13px;font-weight:600;color:var(--dim);
+  background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:color .15s;
+}
+.tab:hover{color:var(--sub)}
+.tab.on{color:var(--txt);border-bottom-color:var(--ac)}
+
+#content{flex:1;padding:24px 20px 60px}
+#content>section{display:none}
+#content>section:not([hidden]){display:block}
+
+#planForm h1,#tripsList h1,#atlas h1{font-size:22px;font-weight:600;margin-bottom:6px}
+.section-sub{font-size:13px;color:var(--sub);margin-bottom:20px}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--sub);margin-bottom:6px}
+.field input,.field select{
+  width:100%;padding:12px 14px;background:var(--s1);border:1px solid var(--line);border-radius:10px;
+  color:var(--txt);font-family:var(--sans);font-size:15px;
+}
+.field input:focus,.field select:focus{outline:none;border-color:var(--ac)}
+.field-row{display:flex;gap:12px}
+.field-row .field{flex:1}
+
+.btn-primary{
+  width:100%;padding:14px;background:linear-gradient(135deg,var(--ac),var(--ac2));
+  border:none;border-radius:10px;color:#fff;font-family:var(--sans);font-weight:600;font-size:15px;
+  cursor:pointer;margin-top:8px;transition:opacity .15s;
+}
+.btn-primary:hover{opacity:.9}
+.btn-primary:disabled{opacity:.5;cursor:default}
+.btn-ghost{
+  background:none;border:1px solid var(--line);border-radius:8px;color:var(--sub);
+  padding:8px 14px;font-family:var(--sans);font-size:13px;cursor:pointer;
+}
+.btn-ghost:hover{color:var(--txt);border-color:var(--ac)}
+
+.error{color:var(--err);font-size:13px;margin-top:12px;font-family:var(--mono)}
+
+#resultsHeader{display:flex;align-items:center;gap:16px;margin-bottom:16px}
+#resultsTitle{font-size:20px;font-weight:600}
+
+#map{width:100%;height:280px;border-radius:12px;overflow:hidden;margin-bottom:20px;border:1px solid var(--line)}
+
+.day-card{background:var(--s1);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px}
+.day-card h3{font-size:15px;font-weight:600;margin-bottom:2px}
+.day-theme{font-size:12px;color:var(--sub);margin-bottom:14px}
+.stop{display:flex;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+.stop:first-of-type{border-top:none}
+.stop-time{font-family:var(--mono);font-size:11px;color:var(--ac);flex-shrink:0;width:48px;padding-top:2px}
+.stop-body{flex:1}
+.stop-name{font-weight:600;font-size:14px}
+.stop-desc{font-size:13px;color:var(--sub);margin-top:2px;line-height:1.4}
+.stop-warn{font-size:11px;color:var(--err);margin-top:2px;font-family:var(--mono)}
+
+.day-travel{font-family:var(--mono);font-size:11px;color:var(--dim);margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;margin-right:8px;vertical-align:-2px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.save-status{font-size:12px;font-family:var(--mono);margin-bottom:16px;color:var(--ac3,var(--ac))}
+.save-status.error{color:var(--err)}
+
+.empty-state{color:var(--dim);font-size:13px;font-family:var(--mono);padding:20px 0}
+
+.trip-card{
+  display:flex;align-items:center;gap:14px;background:var(--s1);border:1px solid var(--line);
+  border-radius:12px;padding:14px 16px;margin-bottom:10px;cursor:pointer;transition:border-color .15s;
+}
+.trip-card:hover{border-color:var(--ac)}
+.trip-card-body{flex:1;min-width:0}
+.trip-card-dest{font-weight:600;font-size:15px}
+.trip-card-meta{font-size:12px;color:var(--sub);margin-top:2px;font-family:var(--mono)}
+.trip-card-travelers{font-size:11px;color:var(--dim);margin-top:2px}
+.trip-card-delete{
+  background:none;border:none;color:var(--dim);cursor:pointer;font-size:16px;padding:4px 8px;flex-shrink:0;
+}
+.trip-card-delete:hover{color:var(--err)}
+
+.atlas-stats{display:flex;gap:12px;margin-bottom:20px}
+.atlas-stat{flex:1;background:var(--s1);border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center}
+.atlas-stat-num{font-size:24px;font-weight:700;color:var(--ac)}
+.atlas-stat-label{font-size:11px;color:var(--sub);text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+
+#atlasMap{width:100%;height:360px;border-radius:12px;overflow:hidden;border:1px solid var(--line)}
