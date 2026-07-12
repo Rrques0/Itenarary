@@ -17,13 +17,47 @@
   </header>
 
   <nav id="tabs">
-    <button class="tab on" data-view="planForm">Plan</button>
+    <button class="tab on" data-view="home">Home</button>
+    <button class="tab" data-view="planForm">Plan in Detail</button>
     <button class="tab" data-view="tripsList">My Trips</button>
     <button class="tab" data-view="atlas">Atlas</button>
   </nav>
 
   <main id="content">
-    <section id="planForm">
+    <section id="home">
+      <div class="hero">
+        <h1>Where to next?</h1>
+        <p class="section-sub">Type a place, hit the magic button — we'll build the whole trip for you.</p>
+      </div>
+      <div class="field">
+        <label for="magicDestination">Destination</label>
+        <input id="magicDestination" type="text" placeholder="e.g. Kyoto, Japan" autocomplete="off">
+      </div>
+      <button id="magicBtn" class="btn-magic">
+        <span id="magicBtnLabel">✨ Surprise me with an itinerary</span>
+      </button>
+      <p id="magicError" class="error" hidden></p>
+
+      <div class="dash-grid">
+        <button class="dash-card" data-view="planForm">
+          <span class="dash-icon">📝</span>
+          <span class="dash-title">Plan in Detail</span>
+          <span class="dash-sub">Pick dates, pace, interests</span>
+        </button>
+        <button class="dash-card" data-view="tripsList">
+          <span class="dash-icon">🧭</span>
+          <span class="dash-title">My Trips</span>
+          <span class="dash-sub">Everything the family saved</span>
+        </button>
+        <button class="dash-card" data-view="atlas">
+          <span class="dash-icon">🗺️</span>
+          <span class="dash-title">Atlas</span>
+          <span class="dash-sub">Every place, on one map</span>
+        </button>
+      </div>
+    </section>
+
+    <section id="planForm" hidden>
       <h1>Plan a trip</h1>
       <div class="field">
         <label for="destination">Destination</label>

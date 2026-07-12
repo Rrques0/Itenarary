@@ -3,11 +3,17 @@ const API_BASE = window.ITINERARY_API_BASE || 'http://localhost:3210';
 const els = {
   tabs: document.querySelectorAll('.tab'),
   sections: {
+    home: document.getElementById('home'),
     planForm: document.getElementById('planForm'),
     results: document.getElementById('results'),
     tripsList: document.getElementById('tripsList'),
     atlas: document.getElementById('atlas'),
   },
+  magicDestination: document.getElementById('magicDestination'),
+  magicBtn: document.getElementById('magicBtn'),
+  magicBtnLabel: document.getElementById('magicBtnLabel'),
+  magicError: document.getElementById('magicError'),
+  dashCards: document.querySelectorAll('.dash-card'),
   destination: document.getElementById('destination'),
   startDate: document.getElementById('startDate'),
   endDate: document.getElementById('endDate'),
@@ -177,6 +183,33 @@ function openPlan(plan, { tripId = null, travelers = [], returnView = 'planForm'
   renderPlan(plan);
 }
 
+function defaultDateRange(days = 3) {
+  const start = new Date();
+  start.setDate(start.getDate() + 14);
+  const end = new Date(start);
+  end.setDate(end.getDate() + (days - 1));
+  const fmt = (d) => d.toISOString().slice(0, 10);
+  return { startDate: fmt(start), endDate: fmt(end) };
+}
+
+async function requestItinerary(params, { returnView, onError, onStart, onDone }) {
+  onStart?.();
+  try {
+    const res = await fetch(`${API_BASE}/api/itinerary/ai`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+    openPlan(data, { returnView });
+  } catch (err) {
+    onError?.(err.message || String(err));
+  } finally {
+    onDone?.();
+  }
+}
+
 async function generateItinerary() {
   const destination = els.destination.value.trim();
   if (!destination) {
@@ -185,28 +218,43 @@ async function generateItinerary() {
   }
   showError('');
   setLoading(true);
+  await requestItinerary(
+    {
+      destination,
+      startDate: els.startDate.value,
+      endDate: els.endDate.value,
+      interests: els.interests.value.trim(),
+      pace: els.pace.value,
+      mode: els.mode.value,
+    },
+    { returnView: 'planForm', onError: showError, onDone: () => setLoading(false) },
+  );
+}
 
-  try {
-    const res = await fetch(`${API_BASE}/api/itinerary/ai`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        destination,
-        startDate: els.startDate.value,
-        endDate: els.endDate.value,
-        interests: els.interests.value.trim(),
-        pace: els.pace.value,
-        mode: els.mode.value,
-      }),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
-    openPlan(data, { returnView: 'planForm' });
-  } catch (err) {
-    showError(err.message || String(err));
-  } finally {
-    setLoading(false);
+function setMagicLoading(isLoading) {
+  els.magicBtn.disabled = isLoading;
+  els.magicBtnLabel.innerHTML = isLoading
+    ? '<span class="spinner"></span>Working the magic…'
+    : '✨ Surprise me with an itinerary';
+}
+
+function showMagicError(msg) {
+  els.magicError.textContent = msg;
+  els.magicError.hidden = !msg;
+}
+
+async function generateMagicItinerary() {
+  const destination = els.magicDestination.value.trim();
+  if (!destination) {
+    showMagicError('Type a destination first.');
+    return;
   }
+  showMagicError('');
+  const { startDate, endDate } = defaultDateRange();
+  await requestItinerary(
+    { destination, startDate, endDate, interests: 'food, sightseeing, culture', pace: 'moderate', mode: 'walking' },
+    { returnView: 'home', onError: showMagicError, onStart: () => setMagicLoading(true), onDone: () => setMagicLoading(false) },
+  );
 }
 
 async function saveCurrentTrip() {
@@ -354,7 +402,20 @@ els.tabs.forEach((tab) => {
   });
 });
 
+els.dashCards.forEach((card) => {
+  card.addEventListener('click', () => {
+    const view = card.dataset.view;
+    showView(view);
+    if (view === 'tripsList') loadTripsList();
+    if (view === 'atlas') loadAtlas();
+  });
+});
+
 els.planBtn.addEventListener('click', generateItinerary);
+els.magicBtn.addEventListener('click', generateMagicItinerary);
+els.magicDestination.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') generateMagicItinerary();
+});
 els.saveTripBtn.addEventListener('click', saveCurrentTrip);
 els.backBtn.addEventListener('click', () => {
   showView(resultsReturnView);
@@ -363,3 +424,4 @@ els.backBtn.addEventListener('click', () => {
 
 initMap();
 checkHealth();
+showView('home');
